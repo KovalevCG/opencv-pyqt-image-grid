@@ -1,0 +1,1 @@
+pyinstaller --noconfirm --onedir --windowed --add-data "D:/repo/opencv-image-grid/img;img/"  "D:/repo/opencv-image-grid/app.py"

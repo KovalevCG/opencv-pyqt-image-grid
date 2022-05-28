@@ -1,0 +1,2 @@
+Hey guys!
+I created an app that allows quickly combine screenshots for Trello. At the moment it can combine two or four images.

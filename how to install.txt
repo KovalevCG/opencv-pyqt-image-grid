@@ -1,0 +1,2 @@
+1. Unpack archive
+2. Doubleclick on Image Grid.exe

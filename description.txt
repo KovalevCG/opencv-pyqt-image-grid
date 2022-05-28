@@ -1,0 +1,3 @@
+In spare time I made a program for compositing screenshots. While working on our project, it seemed to me that Photoshop was not very suitable for this purpose. Tomorrow I want to put it on Skype, maybe someone else will come in handy.
+
+I wrote a small program for compositing screenshots, I've been using it since the beginning of this week, it seems to me quite convenient. Maybe someone else will come in handy.

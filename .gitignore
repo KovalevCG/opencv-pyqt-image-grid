@@ -1,0 +1,5 @@
+﻿build
+dist
+gitignore-tests
+gitignore-pyinstaller
+output
