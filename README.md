@@ -1,4 +1,4 @@
-# opencv-pyqt-image-grid
+# Application for combining multiple images.
 
 It is very common for a 3D artist to compose several images and put them on Trello so that the Lead Artist can comment or accept the 3D model. Usually this is done in Photoshop, but Photoshop is not very suitable for these tasks.
 I wrote an application that makes it very easy to compose multiple images. The application is written in Python using the PyQt and OpenCV libraries.
