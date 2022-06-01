@@ -3,7 +3,8 @@
 It is very common for a 3D artist to compose several images and put them on Trello so that the Lead Artist can comment or accept the 3D model. Usually this is done in Photoshop, but Photoshop is not very suitable for these tasks.
 I wrote an application that makes it very easy to compose multiple images. The application is written in Python using the PyQt and OpenCV libraries.
 
-![](https://raw.githubusercontent.com/KovalevCG/opencv-pyqt-image-grid/master/Gifs/cover.jpg)
+![](https://raw.githubusercontent.com/KovalevCG/opencv-pyqt-image-grid/master/Gifs/screenshot_01.jpg)
+
 
 The application automatically calculates the optimal resolution based on the resolution of the incoming images.
 It also extends the image using the border color of the image if the incoming image is too small.
@@ -14,6 +15,10 @@ App allows to upload images in two ways, using drag and drop of premade screensh
 
 ![](https://raw.githubusercontent.com/KovalevCG/opencv-pyqt-image-grid/master/Gifs/Image_Grid_dragNdrop_02.gif)
 
+
+
 and a faster way that allows not to create unnecessary files - creating new screenshots inside app:
+
+
 
 ![](https://raw.githubusercontent.com/KovalevCG/opencv-pyqt-image-grid/master/Gifs/Image_Grid_screenshot.gif)
