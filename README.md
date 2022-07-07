@@ -29,6 +29,3 @@ and a faster way that allows not to create unnecessary files - creating new scre
 ![](https://raw.githubusercontent.com/KovalevCG/opencv-pyqt-image-grid/master/Gifs/Image_Grid_screenshot.gif)
 
 <br/>
-
-
-Test of branches - branch dev
