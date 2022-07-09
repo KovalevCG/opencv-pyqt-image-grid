@@ -19,7 +19,7 @@ class ImageLabel(QtWidgets.QLabel):
         # self.setContentsMargins(0,0,0,0)
         # self.setFixedSize(285, 285)
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setText("\n\n Drop Image Here \n\n")
+        self.setText("\n\n Drop Image Here \n\n or Take a Screenshot \n\n")
         self.setScaledContents(True)
         self.setStyleSheet('''
             QLabel{
@@ -44,7 +44,7 @@ class ImageLabel(QtWidgets.QLabel):
 
         # Clear Image
         if action == remove:
-            self.setText("\n\n Drop Image Here \n\n")
+            self.setText("\n\n Drop Image Here \n\n or Take a Screenshot \n\n")
             self.file_path = ""
             self.assignImagePath(self.objectName(), default_image_path)
 
@@ -80,7 +80,7 @@ class ImageLabel(QtWidgets.QLabel):
         path2 = photo_viewer2.file_path
         if path1 == "":
             photo_viewer2.file_path = ""
-            photo_viewer2.setText("\n\n Drop Image Here \n\n")
+            photo_viewer2.setText("\n\n Drop Image Here \n\n or Take a Screenshot \n\n")
             self.assignImagePath(photo_viewer2.objectName(), default_image_path)
         else:
             photo_viewer2.file_path = path1
@@ -92,7 +92,7 @@ class ImageLabel(QtWidgets.QLabel):
             photo_viewer2.setAlignment(QtCore.Qt.AlignCenter)
         if path2 == "":
             photo_viewer1.file_path = ""
-            photo_viewer1.setText("\n\n Drop Image Here \n\n")
+            photo_viewer1.setText("\n\n Drop Image Here \n\n or Take a Screenshot \n\n")
             self.assignImagePath(photo_viewer1.objectName(), default_image_path)
         else:
             photo_viewer1.file_path = path2
@@ -145,6 +145,8 @@ class ImageLabel(QtWidgets.QLabel):
             img_path_4 = path
 
 
+
+
 # ##############################
 #  CLASS MainWindow
 # ##############################
@@ -166,12 +168,16 @@ class MainWindow(QtWidgets.QWidget):
         self.photoViewer_03.setObjectName("photoViewer_03")
         self.photoViewer_04 = ImageLabel()
         self.photoViewer_04.setObjectName("photoViewer_04")
-        self.screen_btn1 = QtWidgets.QPushButton("Or Take a Screenshot")
-        self.screen_btn2 = QtWidgets.QPushButton("Or Take a Screenshot")
-        self.screen_btn3 = QtWidgets.QPushButton("Or Take a Screenshot")
-        self.screen_btn4 = QtWidgets.QPushButton("Or Take a Screenshot")
-        self.screen_btn1.setFixedHeight(20)
-        self.screen_btn2.setFixedHeight(20)
+
+        self.screen_btn1 = QtWidgets.QPushButton("Screenshot")
+        self.screen_btn1_2 = QtWidgets.QPushButton("2")
+        self.screen_btn1_2.setMaximumWidth(28)
+        self.screen_btn1_3 = QtWidgets.QPushButton("3")
+        self.screen_btn1_3.setMaximumWidth(28)
+        self.screen_btn2 = QtWidgets.QPushButton("Screenshot")
+        self.screen_btn3 = QtWidgets.QPushButton("Screenshot")
+        self.screen_btn4 = QtWidgets.QPushButton("Screenshot")
+
         self.line_menu = QtWidgets.QFrame()
         self.line_menu.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_menu.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -182,7 +188,9 @@ class MainWindow(QtWidgets.QWidget):
         self.transfer_button.setFixedHeight(40)
         self.save_as_button = QtWidgets.QPushButton("Save As")
         self.exit_button = QtWidgets.QPushButton("Exit Editor")
-        self.label_about = QLabel("by Alexander Kovalev, 2022")
+
+        # # Tooltips
+        # self.screen_btn1.setToolTip("Right Click - Select Monitor")
 
         # OpenCV
         self.opencv = Opencv()
@@ -191,14 +199,14 @@ class MainWindow(QtWidgets.QWidget):
         self.transfer_button.clicked.connect(self.start_opencv)
         self.save_as_button.clicked.connect(self.save_file_dialog)
         self.exit_button.clicked.connect(self.close_opencv)
-        self.screen_btn1.clicked.connect(lambda: self.hide_me_for_screenshot(1))
-        self.screen_btn2.clicked.connect(lambda: self.hide_me_for_screenshot(2))
-        self.screen_btn3.clicked.connect(lambda: self.hide_me_for_screenshot(3))
-        self.screen_btn4.clicked.connect(lambda: self.hide_me_for_screenshot(4))
+
+        self.screen_btn1.clicked.connect(lambda: self.hide_me_for_screenshot(1, 1))
+        self.screen_btn2.clicked.connect(lambda: self.hide_me_for_screenshot(2, 1))
+        self.screen_btn3.clicked.connect(lambda: self.hide_me_for_screenshot(3, 1))
+        self.screen_btn4.clicked.connect(lambda: self.hide_me_for_screenshot(4, 1))
 
         # Layout
-        main_layout = QtWidgets.QGridLayout()
-        # main_layout.set
+        self.main_layout = QtWidgets.QGridLayout()
 
         # Menu Bar
         self.menu_bar = QMenuBar(self)
@@ -230,23 +238,38 @@ class MainWindow(QtWidgets.QWidget):
         # Show menu
         self.menu_bar.show()
 
-        main_layout.addWidget(self.menu_bar, 0, 0, 1, 2)
-        main_layout.addWidget(self.line_menu, 1, 0, 1, 2)
-        main_layout.addWidget(self.photoViewer_01, 2, 0)
-        main_layout.addWidget(self.screen_btn1, 3, 0, alignment=QtCore.Qt.AlignBottom)
-        main_layout.addWidget(self.photoViewer_02, 2, 1)
-        main_layout.addWidget(self.screen_btn2, 3, 1, alignment=QtCore.Qt.AlignBottom)
-        main_layout.addWidget(self.photoViewer_03, 4, 0)
-        main_layout.addWidget(self.screen_btn3, 5, 0, alignment=QtCore.Qt.AlignBottom)
-        main_layout.addWidget(self.photoViewer_04, 4, 1)
-        main_layout.addWidget(self.screen_btn4, 5, 1, alignment=QtCore.Qt.AlignBottom)
-        main_layout.addWidget(self.line, 6, 0, 1, 2)
-        main_layout.addWidget(self.transfer_button, 7, 0, 1, 2)
-        main_layout.addWidget(self.save_as_button, 8, 0, 1, 1)
-        main_layout.addWidget(self.exit_button, 8, 1, 1, 1)
+        # Screen Layout
+        self.screen_btn1_layout = QHBoxLayout()
+        self.screen_btn1_layout.setSpacing(0)
+        self.screen_btn1_layout.addWidget(self.screen_btn1)
+        self.screen_btn1_layout.addWidget(self.screen_btn1_2)
+        self.screen_btn1_layout.addWidget(self.screen_btn1_3)
+
+
+        # Main Layout
+        self.main_layout.addWidget(self.menu_bar, 0, 0, 1, 2)
+        self.main_layout.addWidget(self.line_menu, 1, 0, 1, 2)
+
+        self.main_layout.addWidget(self.photoViewer_01, 2, 0)
+        self.main_layout.addLayout(self.screen_btn1_layout, 3, 0, 1, 1, alignment=QtCore.Qt.AlignBottom)
+
+        self.main_layout.addWidget(self.photoViewer_02, 2, 1)
+        self.main_layout.addWidget(self.screen_btn2, 3, 1, alignment=QtCore.Qt.AlignBottom)
+
+        self.main_layout.addWidget(self.photoViewer_03, 4, 0)
+        self.main_layout.addWidget(self.screen_btn3, 5, 0, alignment=QtCore.Qt.AlignBottom)
+
+        self.main_layout.addWidget(self.photoViewer_04, 4, 1)
+        self.main_layout.addWidget(self.screen_btn4, 5, 1, alignment=QtCore.Qt.AlignBottom)
+
+        self.main_layout.addWidget(self.line, 6, 0, 1, 2)
+        self.main_layout.addWidget(self.transfer_button, 7, 0, 1, 2)
+        self.main_layout.addWidget(self.save_as_button, 8, 0, 1, 1)
+        self.main_layout.addWidget(self.exit_button, 8, 1, 1, 1)
         # main_layout.addWidget(self.label_about)
 
-        self.setLayout(main_layout)
+        self.setLayout(self.main_layout)
+
 
     def show_about(self):
         print("show about")
@@ -254,7 +277,7 @@ class MainWindow(QtWidgets.QWidget):
         # about_box.setFixedSize(500, 200);
         about_box.setIcon(QMessageBox.Information)
         about_box.setWindowTitle("About")
-        about_box.setText("  Image Grid v" + version + "   \n\n           2022         \n by Alexander Kovalev")
+        about_box.setText("  Image Grid v" + version + "   \n\n           2022         \n by Alexander Kovalev \n kovalev.cg@gmail.com")
         about_box.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         # b1 = QPushButton("ok", d)
@@ -295,14 +318,16 @@ class MainWindow(QtWidgets.QWidget):
         if save_file_name:
             self.opencv.save_image(save_file_name)
 
-    def hide_me_for_screenshot(self, i):
+    def hide_me_for_screenshot(self, i, s):
         self.hide()
         # QtCore.QTimer.singleShot(300, self.show)
-        QtCore.QTimer.singleShot(200, lambda: self.make_screenshot(i))
+        QtCore.QTimer.singleShot(200, lambda: self.make_screenshot(i, s))
 
-    def make_screenshot(self, i):
+    def make_screenshot(self, i, scrn):
+        print(scrn)
         global img_path_1, img_path_2, img_path_3, img_path_4
-        screen = QtWidgets.QApplication.primaryScreen()
+        # screen = QtWidgets.QApplication.primaryScreen()
+        screen = QtWidgets.QApplication.screens()[1]
         screenshot = screen.grabWindow(0)
         filename = "img/screenshot_" + str(int(i)) + ".png"
         screenshot.save(filename, 'png')
@@ -387,8 +412,12 @@ class Opencv:
         while True:
             screen_final = screen_dark.copy()
             if self.draw:
-                screen_final[self.screen_y_start:self.screen_y_end, self.screen_x_start:self.screen_x_end, :] = \
-                    screen[self.screen_y_start:self.screen_y_end, self.screen_x_start:self.screen_x_end, :]
+                y1 = min(self.screen_y_start, self.screen_y_end)
+                y2 = max(self.screen_y_start, self.screen_y_end)
+                x1 = min(self.screen_x_start, self.screen_x_end)
+                x2 = max(self.screen_x_start, self.screen_x_end)
+                screen_final[y1:y2, x1:x2, :] = \
+                    screen[y1:y2, x1:x2, :]
             cv2.putText(screen_final, "Select area of screen to capture", (35, 35), cv2.FONT_HERSHEY_PLAIN, 2, (200, 200, 0), 2)
             cv2.putText(screen_final, "SHIFT when selecting - Move selection", (35, 65), cv2.FONT_HERSHEY_PLAIN, 2, (200, 200, 0), 2)
             cv2.imshow("Screenshot Cropping", screen_final)
@@ -404,8 +433,11 @@ class Opencv:
         # Close Crop Window
         cv2.destroyWindow("Screenshot Cropping")
         # Save Image
-        cv2.imwrite("img/screenshot_" + str(int(i)) + ".png", screen[self.screen_y_start:self.screen_y_end,
-                                                              self.screen_x_start:self.screen_x_end])
+        y1 = min(self.screen_y_start, self.screen_y_end)
+        y2 = max(self.screen_y_start, self.screen_y_end)
+        x1 = min(self.screen_x_start, self.screen_x_end)
+        x2 = max(self.screen_x_start, self.screen_x_end)
+        cv2.imwrite("img/screenshot_" + str(int(i)) + ".png", screen[y1:y2, x1:x2])
         # Screenshot Attributes
         self.screen_x_start = 0
         self.screen_x_end = 0
