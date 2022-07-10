@@ -3,6 +3,7 @@
 # bug fixed
 % improvement
 
+
 ---------- ImageGrid v.1.0.2 (Jul 10 2022) ----------
 + Added the ability to take screenshots of the second and third monitor.
 % Previously, the screenshot area could only be selected from top to bottom and from left to right. Now it can be select as you like.
