@@ -156,7 +156,7 @@ class MainWindow(QtWidgets.QWidget):
 
         self.setFixedSize(430, 520)
         # self.setGeometry(300, 200, 530, 500)
-        self.setWindowTitle("Image Grid v." + version)
+        self.setWindowTitle("Image Grid v." + version + "   (lecense: Ocellus Studio)")
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         # Widgets
@@ -169,14 +169,77 @@ class MainWindow(QtWidgets.QWidget):
         self.photoViewer_04 = ImageLabel()
         self.photoViewer_04.setObjectName("photoViewer_04")
 
-        self.screen_btn1 = QtWidgets.QPushButton("Screenshot")
-        self.screen_btn1_2 = QtWidgets.QPushButton("2")
+        # Screen Buttons Creation
+        self.screen_btn1 = QtWidgets.QPushButton("  Screenshot")
+        self.screen_btn1.setToolTip("Screenshot of the first monitor")
+        self.screen_btn1.setIcon(QtGui.QIcon('img\monitor_1.png'))
+        self.screen_btn1_2 = QtWidgets.QPushButton()
         self.screen_btn1_2.setMaximumWidth(28)
-        self.screen_btn1_3 = QtWidgets.QPushButton("3")
+        self.screen_btn1_2.setToolTip("Screenshot of second monitor")
+        self.screen_btn1_2.setIcon(QtGui.QIcon('img\monitor_2.png'))
+        self.screen_btn1_3 = QtWidgets.QPushButton()
         self.screen_btn1_3.setMaximumWidth(28)
-        self.screen_btn2 = QtWidgets.QPushButton("Screenshot")
-        self.screen_btn3 = QtWidgets.QPushButton("Screenshot")
-        self.screen_btn4 = QtWidgets.QPushButton("Screenshot")
+        self.screen_btn1_3.setToolTip("Screenshot of third monitor")
+        self.screen_btn1_3.setIcon(QtGui.QIcon('img\monitor_3.png'))
+        # Screen Buttons Layout
+        self.screen_btn1_layout = QHBoxLayout()
+        self.screen_btn1_layout.setSpacing(0)
+        self.screen_btn1_layout.addWidget(self.screen_btn1)
+        if len(QApplication.screens()) > 1:
+            self.screen_btn1_layout.addWidget(self.screen_btn1_2)
+        if len(QApplication.screens()) > 2:
+            self.screen_btn1_layout.addWidget(self.screen_btn1_3)
+
+        self.screen_btn2 = QtWidgets.QPushButton("  Screenshot")
+        self.screen_btn2.setIcon(QtGui.QIcon('img\monitor_1.png'))
+        self.screen_btn2_2 = QtWidgets.QPushButton()
+        self.screen_btn2_2.setMaximumWidth(28)
+        self.screen_btn2_2.setIcon(QtGui.QIcon('img\monitor_2.png'))
+        self.screen_btn2_3 = QtWidgets.QPushButton()
+        self.screen_btn2_3.setMaximumWidth(28)
+        self.screen_btn2_3.setIcon(QtGui.QIcon('img\monitor_3.png'))
+        # Screen Buttons Layout
+        self.screen_btn2_layout = QHBoxLayout()
+        self.screen_btn2_layout.setSpacing(0)
+        self.screen_btn2_layout.addWidget(self.screen_btn2)
+        if len(QApplication.screens()) > 1:
+            self.screen_btn2_layout.addWidget(self.screen_btn2_2)
+        if len(QApplication.screens()) > 2:
+            self.screen_btn2_layout.addWidget(self.screen_btn2_3)
+
+        self.screen_btn3 = QtWidgets.QPushButton("  Screenshot")
+        self.screen_btn3.setIcon(QtGui.QIcon('img\monitor_1.png'))
+        self.screen_btn3_2 = QtWidgets.QPushButton("")
+        self.screen_btn3_2.setMaximumWidth(28)
+        self.screen_btn3_2.setIcon(QtGui.QIcon('img\monitor_2.png'))
+        self.screen_btn3_3 = QtWidgets.QPushButton()
+        self.screen_btn3_3.setMaximumWidth(28)
+        self.screen_btn3_3.setIcon(QtGui.QIcon('img\monitor_3.png'))
+        # Screen Buttons Layout
+        self.screen_btn3_layout = QHBoxLayout()
+        self.screen_btn3_layout.setSpacing(0)
+        self.screen_btn3_layout.addWidget(self.screen_btn3)
+        if len(QApplication.screens()) > 1:
+            self.screen_btn3_layout.addWidget(self.screen_btn3_2)
+        if len(QApplication.screens()) > 2:
+            self.screen_btn3_layout.addWidget(self.screen_btn3_3)
+
+        self.screen_btn4 = QtWidgets.QPushButton("  Screenshot")
+        self.screen_btn4.setIcon(QtGui.QIcon('img\monitor_1.png'))
+        self.screen_btn4_2 = QtWidgets.QPushButton()
+        self.screen_btn4_2.setMaximumWidth(28)
+        self.screen_btn4_2.setIcon(QtGui.QIcon('img\monitor_2.png'))
+        self.screen_btn4_3 = QtWidgets.QPushButton()
+        self.screen_btn4_3.setMaximumWidth(28)
+        self.screen_btn4_3.setIcon(QtGui.QIcon('img\monitor_3.png'))
+        # Screen Buttons Layout
+        self.screen_btn4_layout = QHBoxLayout()
+        self.screen_btn4_layout.setSpacing(0)
+        self.screen_btn4_layout.addWidget(self.screen_btn4)
+        if len(QApplication.screens()) > 1:
+            self.screen_btn4_layout.addWidget(self.screen_btn4_2)
+        if len(QApplication.screens()) > 2:
+            self.screen_btn4_layout.addWidget(self.screen_btn4_3)
 
         self.line_menu = QtWidgets.QFrame()
         self.line_menu.setFrameShape(QtWidgets.QFrame.HLine)
@@ -185,8 +248,9 @@ class MainWindow(QtWidgets.QWidget):
         self.line.setFrameShape(QtWidgets.QFrame.HLine)
         self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.transfer_button = QtWidgets.QPushButton("Edit")
-        self.transfer_button.setFixedHeight(40)
+        self.transfer_button.setFixedHeight(50)
         self.save_as_button = QtWidgets.QPushButton("Save As")
+        self.save_as_button.setFixedHeight(50)
         self.exit_button = QtWidgets.QPushButton("Exit Editor")
 
         # # Tooltips
@@ -200,10 +264,18 @@ class MainWindow(QtWidgets.QWidget):
         self.save_as_button.clicked.connect(self.save_file_dialog)
         self.exit_button.clicked.connect(self.close_opencv)
 
-        self.screen_btn1.clicked.connect(lambda: self.hide_me_for_screenshot(1, 1))
-        self.screen_btn2.clicked.connect(lambda: self.hide_me_for_screenshot(2, 1))
-        self.screen_btn3.clicked.connect(lambda: self.hide_me_for_screenshot(3, 1))
-        self.screen_btn4.clicked.connect(lambda: self.hide_me_for_screenshot(4, 1))
+        self.screen_btn1.clicked.connect(lambda: self.hide_me_for_screenshot(1, 0))
+        self.screen_btn1_2.clicked.connect(lambda: self.hide_me_for_screenshot(1, 1))
+        self.screen_btn1_3.clicked.connect(lambda: self.hide_me_for_screenshot(1, 2))
+        self.screen_btn2.clicked.connect(lambda: self.hide_me_for_screenshot(2, 0))
+        self.screen_btn2_2.clicked.connect(lambda: self.hide_me_for_screenshot(2, 1))
+        self.screen_btn2_3.clicked.connect(lambda: self.hide_me_for_screenshot(2, 2))
+        self.screen_btn3.clicked.connect(lambda: self.hide_me_for_screenshot(3, 0))
+        self.screen_btn3_2.clicked.connect(lambda: self.hide_me_for_screenshot(3, 1))
+        self.screen_btn3_3.clicked.connect(lambda: self.hide_me_for_screenshot(3, 2))
+        self.screen_btn4.clicked.connect(lambda: self.hide_me_for_screenshot(4, 0))
+        self.screen_btn4_2.clicked.connect(lambda: self.hide_me_for_screenshot(4, 1))
+        self.screen_btn4_3.clicked.connect(lambda: self.hide_me_for_screenshot(4, 2))
 
         # Layout
         self.main_layout = QtWidgets.QGridLayout()
@@ -238,12 +310,11 @@ class MainWindow(QtWidgets.QWidget):
         # Show menu
         self.menu_bar.show()
 
-        # Screen Layout
-        self.screen_btn1_layout = QHBoxLayout()
-        self.screen_btn1_layout.setSpacing(0)
-        self.screen_btn1_layout.addWidget(self.screen_btn1)
-        self.screen_btn1_layout.addWidget(self.screen_btn1_2)
-        self.screen_btn1_layout.addWidget(self.screen_btn1_3)
+        # Logo
+        # self.logo = QLabel(self)
+        # self.logo.setPixmap(QtGui.QPixmap("img/ocellus_blue.png").scaled(30,30))
+        # self.logo.scaled(60, 60)
+        # self.logo.show()
 
 
         # Main Layout
@@ -254,18 +325,18 @@ class MainWindow(QtWidgets.QWidget):
         self.main_layout.addLayout(self.screen_btn1_layout, 3, 0, 1, 1, alignment=QtCore.Qt.AlignBottom)
 
         self.main_layout.addWidget(self.photoViewer_02, 2, 1)
-        self.main_layout.addWidget(self.screen_btn2, 3, 1, alignment=QtCore.Qt.AlignBottom)
+        self.main_layout.addLayout(self.screen_btn2_layout, 3, 1, alignment=QtCore.Qt.AlignBottom)
 
         self.main_layout.addWidget(self.photoViewer_03, 4, 0)
-        self.main_layout.addWidget(self.screen_btn3, 5, 0, alignment=QtCore.Qt.AlignBottom)
+        self.main_layout.addLayout(self.screen_btn3_layout, 5, 0, alignment=QtCore.Qt.AlignBottom)
 
         self.main_layout.addWidget(self.photoViewer_04, 4, 1)
-        self.main_layout.addWidget(self.screen_btn4, 5, 1, alignment=QtCore.Qt.AlignBottom)
+        self.main_layout.addLayout(self.screen_btn4_layout, 5, 1, alignment=QtCore.Qt.AlignBottom)
 
         self.main_layout.addWidget(self.line, 6, 0, 1, 2)
-        self.main_layout.addWidget(self.transfer_button, 7, 0, 1, 2)
-        self.main_layout.addWidget(self.save_as_button, 8, 0, 1, 1)
-        self.main_layout.addWidget(self.exit_button, 8, 1, 1, 1)
+        self.main_layout.addWidget(self.transfer_button, 7, 0, 1, 1)
+        self.main_layout.addWidget(self.save_as_button, 7, 1, 1, 1)
+        # self.main_layout.addWidget(self.exit_button, 8, 1, 1, 1)
         # main_layout.addWidget(self.label_about)
 
         self.setLayout(self.main_layout)
@@ -327,33 +398,34 @@ class MainWindow(QtWidgets.QWidget):
         print(scrn)
         global img_path_1, img_path_2, img_path_3, img_path_4
         # screen = QtWidgets.QApplication.primaryScreen()
-        screen = QtWidgets.QApplication.screens()[1]
+        screen = QtWidgets.QApplication.screens()[scrn]
         screenshot = screen.grabWindow(0)
         filename = "img/screenshot_" + str(int(i)) + ".png"
         screenshot.save(filename, 'png')
-        self.opencv.screenshot_region(i)
+        if self.opencv.screenshot_region(i):
+            self.show()
+            icon = QtGui.QPixmap(filename)
+            if i == 1:
+                self.photoViewer_01.setPixmap(icon.scaled(self.photoViewer_01.size(), QtCore.Qt.KeepAspectRatioByExpanding,
+                                                          QtCore.Qt.SmoothTransformation))
+                img_path_1 = filename
+                self.photoViewer_01.file_path = filename
+            if i == 2:
+                self.photoViewer_02.setPixmap(icon.scaled(self.photoViewer_02.size(), QtCore.Qt.KeepAspectRatioByExpanding,
+                                                          QtCore.Qt.SmoothTransformation))
+                img_path_2 = filename
+                self.photoViewer_02.file_path = filename
+            if i == 3:
+                self.photoViewer_03.setPixmap(icon.scaled(self.photoViewer_03.size(), QtCore.Qt.KeepAspectRatioByExpanding,
+                                                          QtCore.Qt.SmoothTransformation))
+                img_path_3 = filename
+                self.photoViewer_03.file_path = filename
+            if i == 4:
+                self.photoViewer_04.setPixmap(icon.scaled(self.photoViewer_04.size(), QtCore.Qt.KeepAspectRatioByExpanding,
+                                                          QtCore.Qt.SmoothTransformation))
+                img_path_4 = filename
+                self.photoViewer_04.file_path = filename
         self.show()
-        icon = QtGui.QPixmap(filename)
-        if i == 1:
-            self.photoViewer_01.setPixmap(icon.scaled(self.photoViewer_01.size(), QtCore.Qt.KeepAspectRatioByExpanding,
-                                                      QtCore.Qt.SmoothTransformation))
-            img_path_1 = filename
-            self.photoViewer_01.file_path = filename
-        if i == 2:
-            self.photoViewer_02.setPixmap(icon.scaled(self.photoViewer_02.size(), QtCore.Qt.KeepAspectRatioByExpanding,
-                                                      QtCore.Qt.SmoothTransformation))
-            img_path_2 = filename
-            self.photoViewer_02.file_path = filename
-        if i == 3:
-            self.photoViewer_03.setPixmap(icon.scaled(self.photoViewer_03.size(), QtCore.Qt.KeepAspectRatioByExpanding,
-                                                      QtCore.Qt.SmoothTransformation))
-            img_path_3 = filename
-            self.photoViewer_03.file_path = filename
-        if i == 4:
-            self.photoViewer_04.setPixmap(icon.scaled(self.photoViewer_04.size(), QtCore.Qt.KeepAspectRatioByExpanding,
-                                                      QtCore.Qt.SmoothTransformation))
-            img_path_4 = filename
-            self.photoViewer_04.file_path = filename
 
 
 # ##############################
@@ -388,6 +460,7 @@ class Opencv:
         self.screen_y_end = 0
         self.screen_region_done = False
         self.draw = False
+        self.show_rectangle = False
         self.screen_move = False
         self.move_start_x = None
         self.move_start_y = None
@@ -411,13 +484,12 @@ class Opencv:
         screen_dark = cv2.addWeighted(screen, alpha, zeros, beta, 0.0)
         while True:
             screen_final = screen_dark.copy()
-            if self.draw:
+            if self.show_rectangle:
                 y1 = min(self.screen_y_start, self.screen_y_end)
                 y2 = max(self.screen_y_start, self.screen_y_end)
                 x1 = min(self.screen_x_start, self.screen_x_end)
                 x2 = max(self.screen_x_start, self.screen_x_end)
-                screen_final[y1:y2, x1:x2, :] = \
-                    screen[y1:y2, x1:x2, :]
+                screen_final[y1:y2, x1:x2, :] = screen[y1:y2, x1:x2, :]
             cv2.putText(screen_final, "Select area of screen to capture", (35, 35), cv2.FONT_HERSHEY_PLAIN, 2, (200, 200, 0), 2)
             cv2.putText(screen_final, "SHIFT when selecting - Move selection", (35, 65), cv2.FONT_HERSHEY_PLAIN, 2, (200, 200, 0), 2)
             cv2.imshow("Screenshot Cropping", screen_final)
@@ -427,17 +499,24 @@ class Opencv:
             if key == 27:
                 break
             if cv2.getWindowProperty("Screenshot Cropping", cv2.WND_PROP_VISIBLE) < 1:
+                print("cv2.WND_PROP_VISIBLE")
                 break
             if self.screen_region_done:
                 break
+        # Crop done (True) or exit without crop (False)
+        if self.screen_region_done:
+            ret = True
+        else:
+            ret = False
         # Close Crop Window
         cv2.destroyWindow("Screenshot Cropping")
         # Save Image
-        y1 = min(self.screen_y_start, self.screen_y_end)
-        y2 = max(self.screen_y_start, self.screen_y_end)
-        x1 = min(self.screen_x_start, self.screen_x_end)
-        x2 = max(self.screen_x_start, self.screen_x_end)
-        cv2.imwrite("img/screenshot_" + str(int(i)) + ".png", screen[y1:y2, x1:x2])
+        if self.screen_region_done:
+            y1 = min(self.screen_y_start, self.screen_y_end)
+            y2 = max(self.screen_y_start, self.screen_y_end)
+            x1 = min(self.screen_x_start, self.screen_x_end)
+            x2 = max(self.screen_x_start, self.screen_x_end)
+            cv2.imwrite("img/screenshot_" + str(int(i)) + ".png", screen[y1:y2, x1:x2])
         # Screenshot Attributes
         self.screen_x_start = 0
         self.screen_x_end = 0
@@ -445,6 +524,8 @@ class Opencv:
         self.screen_y_end = 0
         self.screen_region_done = False
         self.draw = False
+        return ret
+
 
     def mouse_screenshot(self, event, x, y, flags, params):
         # If Left Mouse Button Down
@@ -476,6 +557,8 @@ class Opencv:
             if self.draw:
                 self.screen_x_end = x
                 self.screen_y_end = y
+                if not self.show_rectangle:
+                    self.show_rectangle = True
 
     # Method defines base resolution for each image using width1, width2, height1, height2 global variables
     # 0:img1, 1:img2, 2:img3, 3:img4, 4:img1+img2, 5:img3+img4, 6:img1+img3, 7:img2+img4, 8:img1+img2+img2+img4
@@ -907,7 +990,7 @@ class Opencv:
 current_year = date.today().year
 if current_year < 2023:
     # Global Variables
-    version = "1.0.1"
+    version = "1.0.2"
     width1, width2 = 450, 450
     height1, height2 = 350, 350
     tr_x = [0, 0, 0, 0, 0, 0, 0, 0, 0]
