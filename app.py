@@ -251,6 +251,8 @@ class MainWindow(QtWidgets.QWidget):
         self.transfer_button.setFixedHeight(50)
         self.save_as_button = QtWidgets.QPushButton("Save As")
         self.save_as_button.setFixedHeight(50)
+        self.save_as_button.setEnabled(False)
+        self.save_as_button.setToolTip("Please use the 'Edit' button to combine an images before save them")
         self.exit_button = QtWidgets.QPushButton("Exit Editor")
 
         # # Tooltips
@@ -374,6 +376,8 @@ class MainWindow(QtWidgets.QWidget):
         self.opencv.close_opencv()
 
     def start_opencv(self):
+        self.save_as_button.setEnabled(True)
+        self.save_as_button.setToolTip("Save composed image")
         edit_handle = ctypes.windll.user32.FindWindowW(None, "Edit")
         ctypes.windll.user32.ShowWindow(edit_handle, 1)
         self.opencv.main_loop(path_1=img_path_1, path_2=img_path_2, path_3=img_path_3, path_4=img_path_4)

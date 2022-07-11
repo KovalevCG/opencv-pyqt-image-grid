@@ -4,7 +4,14 @@
 % improvement
 
 
----------- ImageGrid v.1.0.2 (Jul 10 2022) ----------
+--------------- ImageGrid v.1.0.2 (Jul 10 2022) ---------------
 + Added the ability to take screenshots of the second and third monitor.
-% Previously, the screenshot area could only be selected from top to bottom and from left to right. Now it can be select as you like.
-- Removed unnecessary button "Exit editor". You can still close the editor using the close window "X" button.
++ Added ability exit the screenshot mode using the "Esc" key.
+% The "Save As" button is disabled until the image is edited.
+% Previously, the screenshot area could only be selected from top to bottom and from
+  left to right. Now it can be select as you like.
+- Removed unnecessary button "Exit editor". You can still close the editor using the
+  close window "X" button.
+
+  --------------- ImageGrid v.1.0.1 (May 26 2022) ---------------
+  First release
