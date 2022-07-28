@@ -1,7 +1,9 @@
 # Application for combining multiple images into 1 file.
 <br/>
-It is very common for a 3D artist to compose several images and put them on Trello so that the Lead Artist can comment or accept the 3D model. Usually this is done in Photoshop, but Photoshop is not very suitable for these tasks.
-I wrote an application that makes it very easy to compose multiple images. The application is written in Python using the PyQt and OpenCV libraries.
+
+The pipeline of the organization I currently work for implies that before sending images to the Lead Artist, images need to be combined. I realized that it’s possible to make a program that will do this much more efficiently than Photoshop and developed that app. The program was very well received and gradually some of the artists started offerring additional functionality that I implemented. Now my application is part of pipeline of the studio I am working in.
+
+The application is written in Python using the PyQt and OpenCV libraries.
 
 <br/><br/>
 
