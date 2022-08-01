@@ -5,10 +5,10 @@ block_cipher = None
 
 
 a = Analysis(
-    ['D:/repo/opencv-image-grid/app.py'],
+    ['d:/repo/opencv-image-grid/app.py'],
     pathex=[],
     binaries=[],
-    datas=[('D:/repo/opencv-image-grid/img', 'img/')],
+    datas=[('d:/repo/opencv-image-grid/img', 'img/')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

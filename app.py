@@ -293,9 +293,15 @@ class MainWindow(QtWidgets.QWidget):
         # --- File Menu ---
         file_menu = self.menu_bar.addMenu("File")
         # Save As
-        save_as_action = QAction('Save As', self)
-        file_menu.addAction(save_as_action)
-        save_as_action.triggered.connect(self.save_file_dialog)
+        self.save_as_action = QAction('Save As', self)
+        file_menu.addAction(self.save_as_action)
+        self.save_as_action.triggered.connect(self.save_file_dialog)
+        self.save_as_action.setEnabled(False)
+        # Save As for Zenly Project
+        self.save_as_action_zenly = QAction('Save As for Zenly', self)
+        file_menu.addAction(self.save_as_action_zenly)
+        self.save_as_action_zenly.triggered.connect(self.save_file_dialog_zenly)
+        self.save_as_action_zenly.setEnabled(False)
         # save_as_action.setShortcut('Ctrl+S')
         # Exit
         exit_action = QAction('Exit', self)
@@ -378,6 +384,8 @@ class MainWindow(QtWidgets.QWidget):
     def start_opencv(self):
         self.save_as_button.setEnabled(True)
         self.save_as_button.setToolTip("Save composed image")
+        self.save_as_action.setEnabled(True)
+        self.save_as_action_zenly.setEnabled(True)
         edit_handle = ctypes.windll.user32.FindWindowW(None, "Edit")
         ctypes.windll.user32.ShowWindow(edit_handle, 1)
         self.opencv.main_loop(path_1=img_path_1, path_2=img_path_2, path_3=img_path_3, path_4=img_path_4)
@@ -388,10 +396,21 @@ class MainWindow(QtWidgets.QWidget):
         else:
             cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
             # cur_path = "d:/"
-        save_file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", cur_path,
+        save_file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", cur_path+"/Image.jpg",
                                                                   "Image (*.jpg);;Image (*.png)")
         if save_file_name:
             self.opencv.save_image(save_file_name)
+
+    def save_file_dialog_zenly(self):
+        if os.path.basename(img_path_1) != "screenshot_1.png" and os.path.basename(img_path_1) != "bg_image.png":
+            cur_path = os.path.dirname(img_path_1)
+        else:
+            cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+            # cur_path = "d:/"
+        save_file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Three Images for Zenly Project", cur_path+"/Image.jpg",
+                                                                  "Image (*.jpg);;Image (*.png)")
+        if save_file_name:
+            self.opencv.save_image_zenly(save_file_name)
 
     def hide_me_for_screenshot(self, i, s):
         self.hide()
@@ -894,6 +913,48 @@ class Opencv:
 
             cv2.imwrite(path, stack)
 
+    # Save Image for Zenly (Saving 3 images)
+    def save_image_zenly(self, path):
+        if self.loop_type == 6:
+            current_resolution = (width1 + width2) / min(zoom)
+            # Calculating resolution for save image
+            if current_resolution < save_resolution:
+                self.save_width1 = int(width1 / min(zoom))
+                self.save_width2 = int(width2 / min(zoom))
+                self.save_height1 = int(height1 / min(zoom))
+                self.save_height2 = int(height2 / min(zoom))
+            else:
+                coefficient = 1600 / (width1 + width2)
+                self.save_width1 = int(width1 * coefficient)
+                self.save_width2 = int(width2 * coefficient)
+                self.save_height1 = int(height1 * coefficient)
+                self.save_height2 = int(height2 * coefficient)
+
+            self.set_base_save_resolution()
+
+            # Creating save images
+            img_1_save = self.create_save_image(self.img_1, 0)
+            img_2_save = self.create_save_image(self.img_2, 1)
+            img_3_save = self.create_save_image(self.img_3, 2)
+            img_4_save = self.create_save_image(self.img_4, 3)
+
+            # Stacking save images
+            border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
+            stack1 = np.hstack((img_1_save, border_h1, img_2_save))
+
+            border_h2 = np.zeros((self.save_height2, 1, 3), dtype='uint8')
+            stack2 = np.hstack((img_3_save, border_h2, img_4_save))
+
+            border_w = np.zeros((1, self.save_width1 + self.save_width2 + 1, 3), dtype='uint8')
+            stack = np.vstack((stack1, border_w, stack2))
+            cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
+                          (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
+
+            cv2.imwrite(path[:-4] + "_SC_Engine_00" + path[-4:], stack1)
+            cv2.imwrite(path[:-4] + "_SC_DDC_00" + path[-4:], stack2)
+            cv2.imwrite(path, stack)
+
+
     # When mouse event runs this method
     def mouse_event(self, event, x, y, flags, params):
         # Global Variables
@@ -994,7 +1055,7 @@ class Opencv:
 current_year = date.today().year
 if current_year < 2023:
     # Global Variables
-    version = "1.0.2"
+    version = "1.0.3"
     width1, width2 = 450, 450
     height1, height2 = 350, 350
     tr_x = [0, 0, 0, 0, 0, 0, 0, 0, 0]
