@@ -154,12 +154,16 @@ class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setFixedSize(430, 520)
-        # self.setGeometry(300, 200, 530, 500)
+        self.num_of_hor_imgs = 2
+        self.num_of_vert_imgs = 2
+
+        # Main Window
+        # self.setFixedSize(430, 520)
+        self.setGeometry(1200, 200, 430, 520)
         self.setWindowTitle("Image Grid v." + version + "   (lecense: Ocellus Studio)")
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
-        # Widgets
+        # photoViewer Widgets
         self.photoViewer_01 = ImageLabel()
         self.photoViewer_01.setObjectName("photoViewer_01")
         self.photoViewer_02 = ImageLabel()
@@ -169,7 +173,7 @@ class MainWindow(QtWidgets.QWidget):
         self.photoViewer_04 = ImageLabel()
         self.photoViewer_04.setObjectName("photoViewer_04")
 
-        # Screen Buttons Creation
+        # Screenshot Buttons Creation
         self.screen_btn1 = QtWidgets.QPushButton("  Screenshot")
         self.screen_btn1.setToolTip("Screenshot of the first monitor")
         self.screen_btn1.setIcon(QtGui.QIcon('img\monitor_1.png'))
@@ -181,6 +185,7 @@ class MainWindow(QtWidgets.QWidget):
         self.screen_btn1_3.setMaximumWidth(28)
         self.screen_btn1_3.setToolTip("Screenshot of third monitor")
         self.screen_btn1_3.setIcon(QtGui.QIcon('img\monitor_3.png'))
+
         # Screen Buttons Layout
         self.screen_btn1_layout = QHBoxLayout()
         self.screen_btn1_layout.setSpacing(0)
@@ -282,47 +287,22 @@ class MainWindow(QtWidgets.QWidget):
         # Layout
         self.main_layout = QtWidgets.QGridLayout()
 
-        # Menu Bar
-        self.menu_bar = QMenuBar(self)
-        self.setStyleSheet("QMenuBar {"
-                                        "background-color: #f0f0f0;"
-                                       "}"
-                            "QMenuBar::item {"
-                                        "background: #f0f0f0;"
-                                        "}")
-        # --- File Menu ---
-        file_menu = self.menu_bar.addMenu("File")
-        # Save As
-        self.save_as_action = QAction('Save As', self)
-        file_menu.addAction(self.save_as_action)
-        self.save_as_action.triggered.connect(self.save_file_dialog)
-        self.save_as_action.setEnabled(False)
-        # Save As for Zenly Project
-        self.save_as_action_zenly = QAction('Save As for Zenly', self)
-        file_menu.addAction(self.save_as_action_zenly)
-        self.save_as_action_zenly.triggered.connect(self.save_file_dialog_zenly)
-        self.save_as_action_zenly.setEnabled(False)
-        # save_as_action.setShortcut('Ctrl+S')
-        # Exit
-        exit_action = QAction('Exit', self)
-        file_menu.addAction(exit_action)
-        exit_action.triggered.connect(self.close)
-        # exit_action.setShortcut('Ctrl+Q')
-        # --- Help Menu ---
-        help_menu = self.menu_bar.addMenu("Help")
-        # About
-        about_action = QAction('About', self)
-        help_menu.addAction(about_action)
-        about_action.triggered.connect(self.show_about)
 
-        # Show menu
-        self.menu_bar.show()
 
         # Logo
         # self.logo = QLabel(self)
         # self.logo.setPixmap(QtGui.QPixmap("img/ocellus_blue.png").scaled(30,30))
         # self.logo.scaled(60, 60)
         # self.logo.show()
+
+        # Elements Creation
+        self.make_menu_bar()
+
+        # MainGrid Loop
+        # for vetr in range(self.num_of_vert_imgs):
+
+
+
 
 
         # Main Layout
@@ -348,6 +328,43 @@ class MainWindow(QtWidgets.QWidget):
         # main_layout.addWidget(self.label_about)
 
         self.setLayout(self.main_layout)
+
+
+    def make_menu_bar(self):
+        # Menu Bar
+        self.menu_bar = QMenuBar(self)
+        self.setStyleSheet("QMenuBar {"
+                           "background-color: #f0f0f0;"
+                           "}"
+                           "QMenuBar::item {"
+                           "background: #f0f0f0;"
+                           "}")
+        # --- File Menu ---
+        file_menu = self.menu_bar.addMenu("File")
+        # Save As
+        self.save_as_action = QAction('Save As', self)
+        file_menu.addAction(self.save_as_action)
+        self.save_as_action.triggered.connect(self.save_file_dialog)
+        self.save_as_action.setEnabled(False)
+        # Save As for Zenly Project
+        self.save_as_action_zenly = QAction('Save As for Zenly', self)
+        file_menu.addAction(self.save_as_action_zenly)
+        self.save_as_action_zenly.triggered.connect(self.save_file_dialog_zenly)
+        self.save_as_action_zenly.setEnabled(False)
+        # save_as_action.setShortcut('Ctrl+S')
+        # Exit
+        exit_action = QAction('Exit', self)
+        file_menu.addAction(exit_action)
+        exit_action.triggered.connect(self.close)
+        # exit_action.setShortcut('Ctrl+Q')
+        # --- Help Menu ---
+        help_menu = self.menu_bar.addMenu("Help")
+        # About
+        about_action = QAction('About', self)
+        help_menu.addAction(about_action)
+        about_action.triggered.connect(self.show_about)
+        # Show menu
+        self.menu_bar.show()
 
 
     def show_about(self):
