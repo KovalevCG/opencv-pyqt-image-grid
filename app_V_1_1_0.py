@@ -519,25 +519,26 @@ class MainWindow(QtWidgets.QWidget):
         self.save_as_action_zenly.setEnabled(True)
         edit_handle = ctypes.windll.user32.FindWindowW(None, "Edit")
         ctypes.windll.user32.ShowWindow(edit_handle, 1)
-        self.opencv.main_loop(self.pyqt_num_of_cols, self.pyqt_num_of_rows, combined_rows, combined_cols)
+        self.opencv.main_loop(self.pyqt_num_of_cols, self.pyqt_num_of_rows)
+        # , combined_rows, combined_cols
 
     def save_file_dialog(self):
-        if os.path.basename(img_path_1) != "screenshot_1.png" and os.path.basename(img_path_1) != "bg_image.png":
-            cur_path = os.path.dirname(img_path_1)
-        else:
-            cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-            # cur_path = "d:/"
+        # if os.path.basename(img_path_1) != "screenshot_1.png" and os.path.basename(img_path_1) != "bg_image.png":
+        #     cur_path = os.path.dirname(img_path_1)
+        # else:
+        cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+        # cur_path = "d:/"
         save_file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", cur_path+"/Image.jpg",
                                                                   "Image (*.jpg);;Image (*.png)")
         if save_file_name:
             self.opencv.save_image(save_file_name)
 
     def save_file_dialog_zenly(self):
-        if os.path.basename(img_path_1) != "screenshot_1.png" and os.path.basename(img_path_1) != "bg_image.png":
-            cur_path = os.path.dirname(img_path_1)
-        else:
-            cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-            # cur_path = "d:/"
+        # if os.path.basename(img_path_1) != "screenshot_1.png" and os.path.basename(img_path_1) != "bg_image.png":
+        #     cur_path = os.path.dirname(img_path_1)
+        # else:
+        cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+        # cur_path = "d:/"
         save_file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Three Images for Zenly Project", cur_path+"/Image.jpg",
                                                                   "Image (*.jpg);;Image (*.png)")
         if save_file_name:
@@ -571,31 +572,20 @@ class MainWindow(QtWidgets.QWidget):
 class Opencv:
     def __init__(self):
         # Attributes and variables
-        global start_width, start_height, tr_x, tr_y, zoom, save_resolution
-        # self.img_1 = None
-        # self.img_2 = None
-        # self.img_3 = None
-        # self.img_4 = None
-        # self.base_resolution = None
-        # self.base_save_resolution = None
+        global start_width, start_height, tr_x, tr_y, zoom
         self.move = False
         self.resize = False
         self.start_x = 0
         self.start_y = 0
-        # self.pos = None
         self.mouse_on_type = None
         self.mouse_on_num = None
         self.mouse_on_arr = [None, None]
-        # self.highlight_pos = None
-        # self.highlight_row = None
-        # self.highlight_col = None
         self.highlight_color = (220, 220, 0)
-        # self.width_total = None
-        # self.height_total = None
-        self.save_width1 = None
-        self.save_width2 = None
-        self.save_height1 = None
-        self.save_height2 = None
+        self.images = []
+        # self.save_width1 = None
+        # self.save_width2 = None
+        # self.save_height1 = None
+        # self.save_height2 = None
         self.close_cv = False
         # Screenshot Attributes
         self.screen_x_start = 0
@@ -671,7 +661,6 @@ class Opencv:
         self.draw = False
         return ret
 
-
     def mouse_screenshot(self, event, x, y, flags, params):
         # If Left Mouse Button Down
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -705,29 +694,25 @@ class Opencv:
                 if not self.show_rectangle:
                     self.show_rectangle = True
 
-
-
-
-
-    # Method defines base resolution for each image using width1, width2, height1, height2 global variables
-    # 0:img1, 1:img2, 2:img3, 3:img4, 4:img1+img2, 5:img3+img4, 6:img1+img3, 7:img2+img4, 8:img1+img2+img2+img4
-    def set_base_resolution(self):
-        self.base_resolution = [(width1, height1),
-                                (width2, height1),
-                                (width1, height2),
-                                (width2, height2)]
-                                # (width1+width2, height1),
-                                # (width1+width2, height2),
-                                # (width1, height1+height2),
-                                # (width2, height1+height2),
-                                # (width1+width2, height1+height2)]
-
-    # Method defines base save resolution for each image using width1, width2, height1, height2 global variables
-    def set_base_save_resolution(self):
-        self.base_save_resolution = [(self.save_width1, self.save_height1),
-                                     (self.save_width2, self.save_height1),
-                                     (self.save_width1, self.save_height2),
-                                     (self.save_width2, self.save_height2)]
+    # # Method defines base resolution for each image using width1, width2, height1, height2 global variables
+    # # 0:img1, 1:img2, 2:img3, 3:img4, 4:img1+img2, 5:img3+img4, 6:img1+img3, 7:img2+img4, 8:img1+img2+img2+img4
+    # def set_base_resolution(self):
+    #     self.base_resolution = [(width1, height1),
+    #                             (width2, height1),
+    #                             (width1, height2),
+    #                             (width2, height2)]
+    #                             # (width1+width2, height1),
+    #                             # (width1+width2, height2),
+    #                             # (width1, height1+height2),
+    #                             # (width2, height1+height2),
+    #                             # (width1+width2, height1+height2)]
+    #
+    # # Method defines base save resolution for each image using width1, width2, height1, height2 global variables
+    # def set_base_save_resolution(self):
+    #     self.base_save_resolution = [(self.save_width1, self.save_height1),
+    #                                  (self.save_width2, self.save_height1),
+    #                                  (self.save_width1, self.save_height2),
+    #                                  (self.save_width2, self.save_height2)]
 
     def set_total_resolution(self):
         global width_total, height_total, num_of_rows, num_of_cols
@@ -743,7 +728,7 @@ class Opencv:
     #
     # Main OpenCV loop start, creating window and showing edited image
     #
-    def main_loop(self, num_of_c, num_of_r, combined_rows, combined_cols):
+    def main_loop(self, num_of_c, num_of_r):
         global img_paths, cell_widths, cell_heights, width_total, height_total, num_of_cols,  num_of_rows
 
         print("START of OpenCV - MAIN LOOP")
@@ -753,30 +738,33 @@ class Opencv:
         cv2.moveWindow("Edit", 50, 50)
         cv2.setMouseCallback('Edit', self.mouse_event)
 
-        num_of_cols = num_of_c
-        num_of_rows = num_of_r
+        # Reset sizes if number of rows or cols changed
+        if (num_of_cols != num_of_c) or (num_of_rows != num_of_r):
+            num_of_cols = num_of_c
+            num_of_rows = num_of_r
 
-        # Set Initial Cell Sizes
-        for r in range(num_of_rows):
-            cell_heights[r] = int(start_height / num_of_rows)
-        for c in range(num_of_cols):
-            cell_widths[c] = int(start_width / num_of_cols)
+            # Set Initial Cell Sizes
+            for r in range(num_of_rows):
+                cell_heights[r] = int(start_height / num_of_rows)
+            for c in range(num_of_cols):
+                cell_widths[c] = int(start_width / num_of_cols)
 
         # width_total and height_total
         self.set_total_resolution()
 
         # Read Images
-        imgs = [[0 for i in range(num_of_cols)] for j in range(num_of_rows)]
+        self.images = [[0 for i in range(num_of_cols)] for j in range(num_of_rows)]
         for r in range(num_of_rows):
             for c in range(num_of_cols):
-                imgs[r][c] = cv2.imread(img_paths[r][c])
+                self.images[r][c] = cv2.imread(img_paths[r][c])
+        # print(self.images)
 
         # Any Amount of Images Loop
         while not self.close_cv:
 
             # Stack Images
             # If we don't have combined columns
-            if not any(combined_cols):
+            if not any_col_combined:
                 # print("ROWS")
                 border_w = np.zeros((1, width_total, 3), dtype='uint8')
                 border_w_highlighted = border_w.copy()
@@ -785,26 +773,24 @@ class Opencv:
                 for row in range(num_of_rows):
                     # If current row combined
                     if combined_rows[row]:
-                        stack_r = self.create_image(imgs[r][c], row, 0, combined=True)
+                        stack_r = self.create_image(self.images[row][0], row, 0, combined="rows")
                     # If current row not combined
                     else:
+                        # Usual image border and highlighted border
                         border_h = np.zeros((cell_heights[row], 1, 3), dtype='uint8')
                         border_h_highlighted = border_h.copy()
                         border_h_highlighted[:, :] = self.highlight_color
                         stack_r = border_h.copy()
+                        # Loop all cols
                         for col in range(num_of_cols):
-                            img_edit = self.create_image(imgs[r][c], row, col, combined=False)
+                            # Image creation
+                            img_edit = self.create_image(self.images[row][col], row, col, combined="none")
+                            # Adding usual or highlighted border
                             if self.mouse_on_type == "grid_v" and self.mouse_on_num == col:
-                                stack_r = np.hstack((stack_r, img_edit, border_h_highlighted))
-                            elif self.mouse_on_type == "border_v" and self.mouse_on_num == col:
-                                img_edit[:, -1:] = self.highlight_color
                                 stack_r = np.hstack((stack_r, img_edit, border_h_highlighted))
                             else:
                                 stack_r = np.hstack((stack_r, img_edit, border_h))
                     if self.mouse_on_type == "grid_h" and self.mouse_on_num == row:
-                        stack = np.vstack((stack, stack_r, border_w_highlighted))
-                    elif self.mouse_on_type == "border_h" and self.mouse_on_num == row:
-                        stack_r[-1:, :] = self.highlight_color
                         stack = np.vstack((stack, stack_r, border_w_highlighted))
                     else:
                         stack = np.vstack((stack, stack_r, border_w))
@@ -812,19 +798,49 @@ class Opencv:
             # If we have combined columns
             else:
                 # print("COLUMNS")
-                for c in range(num_of_cols):
+                border_h = np.zeros((height_total, 1, 3), dtype='uint8')
+                border_h_highlighted = border_h.copy()
+                border_h_highlighted[:, :] = self.highlight_color
+                stack = border_h.copy()
+                for col in range(num_of_cols):
                     # If current column combined
-                    if combined_cols[c]:
-                        pass
 
-                    # If current row not combined
+                    if combined_cols[col]:
+                        stack_c = self.create_image(self.images[0][col], 0, col, combined="columns")
+                    # If current column not combined
                     else:
-                        for r in range(num_of_rows):
-                            pass
-
+                        # Usual image border and highlighted border
+                        border_w = np.zeros((1, cell_widths[col], 3), dtype='uint8')
+                        border_w_highlighted = border_w.copy()
+                        border_w_highlighted[:, :] = self.highlight_color
+                        stack_c = border_w.copy()
+                        # Loop all rows
+                        for row in range(num_of_rows):
+                            # Image creation
+                            img_edit = self.create_image(self.images[row][col], row, col, combined="none")
+                            # Adding usual or highlighted border
+                            if self.mouse_on_type == "grid_h" and self.mouse_on_num == row:
+                                stack_c = np.vstack((stack_c, img_edit, border_w_highlighted))
+                            else:
+                                stack_c = np.vstack((stack_c, img_edit, border_w))
+                    if self.mouse_on_type == "grid_v" and self.mouse_on_num == col:
+                        stack = np.hstack((stack, stack_c, border_h_highlighted))
+                    else:
+                        stack = np.hstack((stack, stack_c, border_h))
+            # Thin black border all over the image
+            stack[-1:, :] = 0
+            stack[:, -1:] = 0
+            stack[:1, :] = 0
+            stack[:, :1] = 0
+            # Show Borders on image vertical(right side) and horizontal(bottom)
+            if self.mouse_on_type == "border_h":
+                stack[-2:, :] = self.highlight_color
+            if self.mouse_on_type == "border_v":
+                stack[:, -2:] = self.highlight_color
             # Show final image
             try:
                 cv2.imshow("Edit", stack)
+                # cv2.imshow("Edit", self.images[0][0])
             except:
                 print('error!!: ', sys.exc_info()[0])
 
@@ -836,21 +852,25 @@ class Opencv:
         cv2.destroyAllWindows()
 
     # Editing (move, scale) image
-    def create_image(self, img, row, col, combined):
-
-        # self.set_total_resolution()
-
+    def create_image(self, img, row, col, combined,  resize=True):
         # Local Variables
         border_top, border_bottom, border_left, border_right = 0, 0, 0, 0
         y, x = img.shape[:2]
 
         # Region coordinates to crop in world
-        # If current row/column combined
-        if combined:
+        # If current row combined
+        if combined == "rows":
             crop_x_start = int(x / 2 - width_total / zoom[row][col] / 2 - tr_x[row][col] / zoom[row][col])
             crop_x_end = int(crop_x_start + width_total / zoom[row][col])
             crop_y_start = int(y / 2 - cell_heights[row] / zoom[row][col] / 2 - tr_y[row][col] / zoom[row][col])
             crop_y_end = int(crop_y_start + cell_heights[row] / zoom[row][col])
+        # If current column combined
+        elif combined == "columns":
+            crop_x_start = int(x / 2 - cell_widths[col] / zoom[row][col] / 2 - tr_x[row][col] / zoom[row][col])
+            crop_x_end = int(crop_x_start + cell_widths[col] / zoom[row][col])
+            crop_y_start = int(y / 2 - height_total / zoom[row][col] / 2 - tr_y[row][col] / zoom[row][col])
+            crop_y_end = int(crop_y_start + height_total / zoom[row][col])
+        # We have no combined rows or columns
         else:
             crop_x_start = int(x / 2 - cell_widths[col] / zoom[row][col] / 2 - tr_x[row][col] / zoom[row][col])
             crop_x_end = int(crop_x_start + cell_widths[col] / zoom[row][col])
@@ -873,47 +893,34 @@ class Opencv:
             border_bottom = crop_y_end - y
         img_edit = cv2.copyMakeBorder(img_edit, border_top, border_bottom, border_left, border_right,
                                       cv2.BORDER_REPLICATE)
-        if combined:
-            img_edit = cv2.resize(img_edit, (width_total, cell_heights[row]),  interpolation=cv2.INTER_AREA)
-        else:
-            img_edit = cv2.resize(img_edit, (cell_widths[col], cell_heights[row]), interpolation=cv2.INTER_AREA)
-        # print(f"img_edit.shape: {img_edit.shape}")
+        # Resize images
+        if resize:
+            if combined == "rows":
+                img_edit = cv2.resize(img_edit, (width_total, cell_heights[row]),  interpolation=cv2.INTER_AREA)
+            elif combined == "columns":
+                img_edit = cv2.resize(img_edit, (cell_widths[col], height_total), interpolation=cv2.INTER_AREA)
+            else:
+                img_edit = cv2.resize(img_edit, (cell_widths[col], cell_heights[row]), interpolation=cv2.INTER_AREA)
         return img_edit
 
     # Editing (move, scale) image for save (higher resolution)
-    def create_save_image(self, img, i):
-        # Local Variables
-        border_top, border_bottom, border_left, border_right = 0, 0, 0, 0
-        y, x = img.shape[:2]
+    def create_save_image(self, img, row, col, combined,  resize=True):
 
-        # Region coordinates to crop in world
-        crop_x_start = int(x / 2 - self.base_resolution[i][0] / zoom[i] / 2 - tr_x[i] / zoom[i])
-        crop_x_end = int(crop_x_start + self.base_resolution[i][0] / zoom[i])
-        crop_y_start = int(y / 2 - self.base_resolution[i][1] / zoom[i] / 2 - tr_y[i] / zoom[i])
-        crop_y_end = int(crop_y_start + self.base_resolution[i][1] / zoom[i])
+        # Create images without resize
+        img_edit = self.create_image(img, row, col, combined, resize=False)
 
-        # Region to crop on image (without negative values)
-        crop_y_region_start = max(0, crop_y_start)
-        crop_x_region_start = max(0, crop_x_start)
-        img_edit = img[crop_y_region_start:crop_y_end, crop_x_region_start:crop_x_end, :]
-
-        # Adding borders on cropped image if needed
-        if crop_x_start < 0:
-            border_left = crop_x_start * (-1)
-        if crop_y_start < 0:
-            border_top = crop_y_start * (-1)
-        if crop_x_end > x:
-            border_right = crop_x_end - x
-        if crop_y_end > y:
-            border_bottom = crop_y_end - y
-        img_edit = cv2.copyMakeBorder(img_edit, border_top, border_bottom, border_left, border_right,
-                                      cv2.BORDER_REPLICATE)
-        ## !!
-        img_edit = cv2.resize(img_edit, self.base_save_resolution[i], interpolation=cv2.INTER_AREA)
+        # Resize with save resolution (1600px or smaller if images small)
+        if resize:
+            if combined == "rows":
+                img_edit = cv2.resize(img_edit, (width_save_total, cell_save_heights[row]),  interpolation=cv2.INTER_AREA)
+            elif combined == "columns":
+                img_edit = cv2.resize(img_edit, (cell_save_widths[col], height_save_total), interpolation=cv2.INTER_AREA)
+            else:
+                img_edit = cv2.resize(img_edit, (cell_save_widths[col], cell_save_heights[row]), interpolation=cv2.INTER_AREA)
         return img_edit
 
     # Save Image
-    def save_image(self, path):
+    def save_image_old(self, path):
         if self.loop_type == 1:
             current_resolution = width1 / zoom[0]
             # Calculating resolution for save image
@@ -1005,6 +1012,209 @@ class Opencv:
 
             cv2.imwrite(path, stack)
 
+    # Save Image
+    def save_image(self, path):
+        global cell_save_widths, cell_save_heights, width_save_total, height_save_total
+        cell_scale_coefs = []
+
+        # Calculation of a scale coefficients of all visible cells
+        # If we don't have combined columns (Nothing combined or rows combined)
+        if not any(combined_cols):
+            # Loop all rows
+            for row in range(num_of_rows):
+                # If current row combined
+                if combined_rows[row]:
+                    img_edit = self.create_image(self.images[row][0], row, 0, combined="rows", resize=False)
+                    cell_scale_coefs.append(img_edit.shape[0] / cell_heights[row])
+                # If current row not combined
+                else:
+                    # Loop all cols
+                    for col in range(num_of_cols):
+                        img_edit = self.create_image(self.images[row][col], row, col, combined="none", resize=False)
+                        cell_scale_coefs.append(img_edit.shape[0] / cell_heights[row])
+        # If we have combined columns
+        else:
+            # Loop all columns
+            for col in range(num_of_cols):
+                # If current column combined
+                if combined_cols[col]:
+                    img_edit = self.create_image(self.images[0][col], 0, col, combined="cols", resize=False)
+                    cell_scale_coefs.append(img_edit.shape[1] / cell_widths[col])
+                # If current column not combined
+                else:
+                    # Loop all rows
+                    for row in range(num_of_rows):
+                        img_edit = self.create_image(self.images[row][col], row, col, combined="none", resize=False)
+                        cell_scale_coefs.append(img_edit.shape[1] / cell_widths[col])
+        # print(cell_scale_coefs)
+
+        print(f"len(cell_widths): {len(cell_widths)}")
+        print(f"len(cell_save_widths): {len(cell_save_widths)}")
+        print(f"max(cell_scale_coefs): {max(cell_scale_coefs)}")
+
+        # Calculation of global list vars "cell_save_widths[]" and "cell_save_heights[]"
+        if width_total * max(cell_scale_coefs) < save_resolution_width:
+            for i in range(len(cell_widths)):
+                cell_save_widths[i] = int(cell_widths[i] * max(cell_scale_coefs))
+            for i in range(len(cell_heights)):
+                cell_save_heights[i] = int(cell_heights[i] * max(cell_scale_coefs))
+        else:
+            resolution_coef = save_resolution_width / width_total
+            for i in range(len(cell_widths)):
+                cell_save_widths[i] = int(cell_widths[i] * resolution_coef)
+            for i in range(len(cell_heights)):
+                cell_save_heights[i] = int(cell_heights[i] * resolution_coef)
+
+        # Calculate global variables "width_save_total" and "height_save_total"
+        width_save_total = 0
+        for i in range(len(cell_save_widths)):
+            width_save_total += cell_save_widths[i]
+        height_save_total = 0
+        for i in range(len(cell_save_heights)):
+            height_save_total += cell_save_heights[i]
+
+        # Stack Images
+        # If we don't have combined columns
+        if not any_col_combined:
+            # print("ROWS")
+            print("width_save_total: ", width_save_total)
+            border_w = np.zeros((1, width_save_total + num_of_cols + 1, 3), dtype='uint8')
+            stack = border_w.copy()
+            for row in range(num_of_rows):
+                # If current row combined
+                if combined_rows[row]:
+                    stack_r = self.create_save_image(self.images[row][0], row, 0, combined="rows")
+                # If current row not combined
+                else:
+                    # Usual image border and highlighted border
+                    border_h = np.zeros((cell_save_heights[row], 1, 3), dtype='uint8')
+                    stack_r = border_h.copy()
+                    # Loop all cols
+                    for col in range(num_of_cols):
+                        # Image creation
+                        img_edit = self.create_save_image(self.images[row][col], row, col, combined="none")
+                        # Adding border
+                        stack_r = np.hstack((stack_r, img_edit, border_h))
+                stack = np.vstack((stack, stack_r, border_w))
+
+        # If we have combined columns
+        else:
+            # print("COLUMNS")
+            border_h = np.zeros((height_save_total + num_of_rows, 1, 3), dtype='uint8')
+            stack = border_h.copy()
+            for col in range(num_of_cols):
+                # If current column combined
+
+                if combined_cols[col]:
+                    stack_c = self.create_save_image(self.images[0][col], 0, col, combined="columns")
+                # If current column not combined
+                else:
+                    # Usual image border and highlighted border
+                    border_w = np.zeros((1, cell_save_widths[col], 3), dtype='uint8')
+                    stack_c = border_w.copy()
+                    # Loop all rows
+                    for row in range(num_of_rows):
+                        # Image creation
+                        img_edit = self.create_save_image(self.images[row][col], row, col, combined="none")
+                        # Adding usual or highlighted border
+                        stack_c = np.vstack((stack_c, img_edit, border_w))
+                stack = np.hstack((stack, stack_c, border_h))
+        cv2.imwrite(path, stack)
+        # Thin black border all over the image
+
+
+
+        # if self.loop_type == 1:
+        #     current_resolution = width1 / zoom[0]
+        #     # Calculating resolution for save image
+        #     if current_resolution < save_resolution:
+        #         self.save_width1 = int(width1 / min(zoom))
+        #         self.save_width2 = int(width2 / min(zoom))
+        #         self.save_height1 = int(height1 / min(zoom))
+        #         self.save_height2 = int(height2 / min(zoom))
+        #     else:
+        #         coefficient = 1600 / width1
+        #         self.save_width1 = int(width1 * coefficient)
+        #         self.save_width2 = int(width2 * coefficient)
+        #         self.save_height1 = int(height1 * coefficient)
+        #         self.save_height2 = int(height2 * coefficient)
+        #
+        #     self.set_base_save_resolution()
+        #
+        #     # Creating save images
+        #     img_1_save = self.create_save_image(self.img_1, 0)
+        #     stack = img_1_save
+        #     # Stacking save images
+        #     # border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
+        #     # stack = np.hstack((img_1_save, border_h1, img_2_save))
+        #     cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
+        #                   (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
+        #     cv2.imwrite(path, stack)
+        #
+        # if self.loop_type == 2:
+        #     current_resolution = (width1 + width2) / min(zoom[0], zoom[1])
+        #     # Calculating resolution for save image
+        #     if current_resolution < save_resolution:
+        #         self.save_width1 = int(width1 / min(zoom))
+        #         self.save_width2 = int(width2 / min(zoom))
+        #         self.save_height1 = int(height1 / min(zoom))
+        #         self.save_height2 = int(height2 / min(zoom))
+        #     else:
+        #         coefficient = 1600 / (width1 + width2)
+        #         self.save_width1 = int(width1 * coefficient)
+        #         self.save_width2 = int(width2 * coefficient)
+        #         self.save_height1 = int(height1 * coefficient)
+        #         self.save_height2 = int(height2 * coefficient)
+        #
+        #     self.set_base_save_resolution()
+        #
+        #     # Creating save images
+        #     img_1_save = self.create_save_image(self.img_1, 0)
+        #     img_2_save = self.create_save_image(self.img_2, 1)
+        #
+        #     # Stacking save images
+        #     border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
+        #     stack = np.hstack((img_1_save, border_h1, img_2_save))
+        #     cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
+        #                   (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
+        #
+        #     cv2.imwrite(path, stack)
+
+        # if self.loop_type == 6:
+        #     current_resolution = (width1 + width2) / min(zoom)
+        #     # Calculating resolution for save image
+        #     if current_resolution < save_resolution:
+        #         self.save_width1 = int(width1 / min(zoom))
+        #         self.save_width2 = int(width2 / min(zoom))
+        #         self.save_height1 = int(height1 / min(zoom))
+        #         self.save_height2 = int(height2 / min(zoom))
+        #     else:
+        #         coefficient = 1600 / (width1 + width2)
+        #         self.save_width1 = int(width1 * coefficient)
+        #         self.save_width2 = int(width2 * coefficient)
+        #         self.save_height1 = int(height1 * coefficient)
+        #         self.save_height2 = int(height2 * coefficient)
+        #
+        #     self.set_base_save_resolution()
+        #
+        #     # Creating save images
+        #     img_1_save = self.create_save_image(self.img_1, 0)
+        #     img_2_save = self.create_save_image(self.img_2, 1)
+        #     img_3_save = self.create_save_image(self.img_3, 2)
+        #     img_4_save = self.create_save_image(self.img_4, 3)
+        #
+        #     # Stacking save images
+        #     border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
+        #     stack1 = np.hstack((img_1_save, border_h1, img_2_save))
+        #     border_h2 = np.zeros((self.save_height2, 1, 3), dtype='uint8')
+        #     stack2 = np.hstack((img_3_save, border_h2, img_4_save))
+        #     border_w = np.zeros((1, self.save_width1 + self.save_width2 + 1, 3), dtype='uint8')
+        #     stack = np.vstack((stack1, border_w, stack2))
+        #     cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
+        #                   (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
+        #
+        #     cv2.imwrite(path, stack)
+
     # Save Image for Zenly (Saving 3 images)
     def save_image_zenly(self, path):
         if self.loop_type == 6:
@@ -1050,9 +1260,9 @@ class Opencv:
     def mouse_event(self, event, x, y, flags, params):
         # Global Variables
         global width_total, height_total, cell_widths, cell_heights
-        # If Left Mouse Button Down
         if not self.resize:
             self.mouse_tile_position(x, y)
+        # If Left Mouse Button Down
         if event == cv2.EVENT_LBUTTONDOWN:
             if self.mouse_on_type == "cell":
                 r, c = self.mouse_on_arr
@@ -1070,18 +1280,46 @@ class Opencv:
                 r, c = self.mouse_on_arr
                 tr_x[r][c], tr_y[r][c] = x - self.start_x, y - self.start_y
             if self.resize:
+                # Resize Vertical Border
                 if self.mouse_on_type == "border_v":
                     delta = int((x - width_total)/num_of_cols)
-                    cell_widths = [x+delta for x in cell_widths]
+                    for i, cel in enumerate(cell_widths):
+                        width = cell_widths[i] + delta
+                        if width > 40:
+                            cell_widths[i] = width
                     self.set_total_resolution()
-                if self.mouse_on_type == "grid_v":
+                # Resize Vertical Grid
+                elif self.mouse_on_type == "grid_v":
                     width = 1
                     for i in range(self.mouse_on_num + 1):
                         width += cell_widths[i] + 1
                     delta = x - width
-                    # print(delta)
-                    cell_widths[i] = cell_widths[i] + delta
-                    cell_widths[i+1] = cell_widths[i+1] - delta
+                    width_left = cell_widths[i] + delta
+                    width_right = cell_widths[i+1] - delta
+                    if (width_left > 40) and (width_right > 40):
+                        cell_widths[i] = width_left
+                        cell_widths[i+1] = width_right
+                    self.set_total_resolution()
+                # Resize Horizontal Border
+                elif self.mouse_on_type == "border_h":
+                    delta = int((y - height_total)/num_of_rows)
+                    # cell_heights = [y+delta for y in cell_heights]
+                    for i, cel in enumerate(cell_heights):
+                        height = cell_heights[i] + delta
+                        if height > 40:
+                            cell_heights[i] = height
+                    self.set_total_resolution()
+                # Resize Horizontal Grid
+                elif self.mouse_on_type == "grid_h":
+                    height = 1
+                    for i in range(self.mouse_on_num + 1):
+                        height += cell_heights[i] + 1
+                    delta = y - height
+                    height_top = cell_heights[i] + delta
+                    height_bottom = cell_heights[i+1] - delta
+                    if (height_top > 40) and (height_bottom > 40):
+                        cell_heights[i] = height_top
+                        cell_heights[i+1] = height_bottom
                     self.set_total_resolution()
         # If Mouse Wheel Scroll
         elif event == cv2.EVENT_MOUSEWHEEL:
@@ -1090,7 +1328,6 @@ class Opencv:
                 zoom[r][c] *= 1.1
             else:
                 zoom[r][c] /= 1.1
-
 
     # Function returns current tile number using mouse position
     # @staticmethod
@@ -1105,20 +1342,45 @@ class Opencv:
             self.mouse_on_type = "border_h"
             self.mouse_on_num = num_of_rows - 1
             return
+        # Vertical Grid
         width = 1
         height = 1
         for i in range(num_of_cols-1):
             width += cell_widths[i] + 1
-            if (width - 5) < x < (width + 5):
-                self.mouse_on_type = "grid_v"
-                self.mouse_on_num = i
+            if (width - 7) < x < (width + 7):
+                if any_row_combined:
+                    for a in range(num_of_rows):
+                        height += cell_heights[a] + 1
+                        if y < height:
+                            if not combined_rows[a]:
+                                self.mouse_on_type = "grid_v"
+                                self.mouse_on_num = i
+                            return
+                    return
+                else:
+                    self.mouse_on_type = "grid_v"
+                    self.mouse_on_num = i
                 return
+        # Horizontal Grid
+        width = 1
+        height = 1
         for i in range(num_of_rows-1):
             height += cell_heights[i] + 1
-            if (height - 5) < y < (height + 5):
-                self.mouse_on_type = "grid_h"
-                self.mouse_on_num = i
+            if (height - 7) < y < (height + 7):
+                if any_col_combined:
+                    for a in range(num_of_cols):
+                        width += cell_widths[a] + 1
+                        if x < width:
+                            if not combined_cols[a]:
+                                self.mouse_on_type = "grid_h"
+                                self.mouse_on_num = i
+                            return
+                    return
+                else:
+                    self.mouse_on_type = "grid_h"
+                    self.mouse_on_num = i
                 return
+        # Cursor on Cell
         width = 1
         height = 1
         for r in range(num_of_rows):
@@ -1138,8 +1400,7 @@ class Opencv:
                                 return
                             self.mouse_on_arr = [r, c]
                             return
-        print("ERROR!")
-
+        # print("ERROR!")
 
     # Dimensions of multidimensional list
     def dim(self, a):
@@ -1152,45 +1413,43 @@ class Opencv:
         self.close_cv = True
 
 
-current_year = date.today().year
-if current_year < 2023:
-    # Global Variables
-    version = "1.1.0"
-    start_width = 900
-    start_height = 700
-    width_total = None
-    height_total = None
-    # num_of_cols = None
-    # num_of_rows = None
-    # width1, width2 = 450, 450
-    # height1, height2 = 350, 350
-    # tr_x = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # tr_y = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # zoom = [1, 1, 1, 1, 1, 1, 1, 1, 1]
-    save_resolution = 1600
-    default_image_path = "./img/bg_image.png"
+# current_year = date.today().year
+# if current_year < 2023:
+# Global Variables
+version = "1.1.0"
+start_width = 900
+start_height = 700
+width_total = None
+height_total = None
+width_save_total = None
+height_save_total = None
+save_resolution_width = 1600
+save_resolution_height = 1200
+default_image_path = "./img/bg_image.png"
 
-    num_of_cols = 2
-    num_of_rows = 2
-    combined_rows = [False] * 7
-    combined_cols = [False] * 15
-    any_row_combined = False
-    any_col_combined = False
+num_of_cols = None
+num_of_rows = None
+combined_rows = [False] * 7
+combined_cols = [False] * 15
+any_row_combined = False
+any_col_combined = False
 
 
-    # Default Image Assignment
-    # Using: img_path[ROW][COLUMN]
-    rows, cols = (7, 15)
-    img_paths = [[default_image_path for i in range(cols)] for j in range(rows)]
-    zoom = [[1 for i in range(cols)] for j in range(rows)]
-    tr_x = [[0 for i in range(cols)] for j in range(rows)]
-    tr_y = [[0 for i in range(cols)] for j in range(rows)]
-    cell_widths = [0 for i in range(cols)]
-    cell_heights = [0 for i in range(rows)]
-    # Using: cell_sizes[AXIS(0-x,1-y)][ROW][COLUMN]
-    # cell_sizes = [[[0 for a in range(2)] for i in range(cols)] for j in range(rows)]
+# Default Image Assignment
+# Using: img_path[ROW][COLUMN]
+rows, cols = (7, 15)
+img_paths = [[default_image_path for i in range(cols)] for j in range(rows)]
+zoom = [[1 for i in range(cols)] for j in range(rows)]
+tr_x = [[0 for i in range(cols)] for j in range(rows)]
+tr_y = [[0 for i in range(cols)] for j in range(rows)]
+cell_widths = [0 for i in range(cols)]
+cell_heights = [0 for i in range(rows)]
+cell_save_widths = [0 for i in range(cols)]
+cell_save_heights = [0 for i in range(rows)]
+# Using: cell_sizes[AXIS(0-x,1-y)][ROW][COLUMN]
+# cell_sizes = [[[0 for a in range(2)] for i in range(cols)] for j in range(rows)]
 
-    app = QtWidgets.QApplication([])
-    window = MainWindow()
-    window.show()
-    app.exec()
+app = QtWidgets.QApplication([])
+window = MainWindow()
+window.show()
+app.exec()
