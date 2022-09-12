@@ -26,81 +26,85 @@ class ImageLabel(QtWidgets.QLabel):
             }
         ''')
         self.setAcceptDrops(True)
-        self.file_path = ""
+        # self.file_path = ""
         self.setScaledContents(False)
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
         # self.setFixedSize(100, 100)
 
     # Right Mouse Button Pressed on Image (QLabel)
     def contextMenuEvent(self, event):
-        global img_path_1, img_path_2, img_path_3, img_path_4, default_image_path
+        global img_paths, default_image_path
+
+        row = int(self.objectName()[-5:-3])
+        col = int(self.objectName()[-2:])
+
         context_menu = QMenu(self)
-        swap_horizontally = context_menu.addAction("⇿ Swap Images Horizontally")
-        swap_vertically = context_menu.addAction(" ↕ Swap Images Vertically")
-        swap_diagonally = context_menu.addAction("◇ Swap Images Diagonally")
-        remove = context_menu.addAction("Remove Image")
+
+        # Menu Items
+        insert_row = context_menu.addAction(QIcon("./img/SVG/insert-row.svg"), "Insert Row of Images (↑)")
+        insert_column = context_menu.addAction(QIcon("./img/SVG/insert-column.svg"), "Insert Column of Images (←)")
+        del_row = context_menu.addAction(QIcon("./img/SVG/del-row.svg"), "Delete Row of Images")
+        del_column = context_menu.addAction(QIcon("./img/SVG/del-column.svg"), "Delete Column of Images")
+        # Separator
+        context_menu.addSeparator()
+        clear_image = context_menu.addAction(QIcon("./img/SVG/clear-image.svg"), "Clear Image")
+        # Separator
+        context_menu.addSeparator()
+        swap_left = context_menu.addAction(QIcon("./img/SVG/swap-left-color.svg"), "Move Image Left")
+        swap_right = context_menu.addAction(QIcon("./img/SVG/swap-right-color.svg"), "Move Image Right")
+        swap_up = context_menu.addAction(QIcon("./img/SVG/swap-up-color.svg"), "Move Image Up")
+        swap_down = context_menu.addAction(QIcon("./img/SVG/swap-down-color.svg"), "Move Image Down")
+
         action = context_menu.exec_(self.mapToGlobal(event.pos()))
 
+        # Insert Row of Images
+        if action == insert_row:
+            window.insert_row(row)
+
+        # Insert Column of Images
+        if action == insert_column:
+            window.insert_column(col)
+
+        # Delete Row of Images
+        if action == del_row:
+            window.remove_row(row)
+
+        # Delete Column of Images
+        if action == del_column:
+            window.remove_column(col)
+
         # Clear Image
-        if action == remove:
-            self.setText("\n\n Drop Image Here \n\n or Take a Screenshot \n\n")
-            self.file_path = ""
-            self.assignImagePath(self.objectName(), default_image_path)
+        if action == clear_image:
+            img_paths[row][col] = default_image_path
+            window.construct_grid()
 
-        # Swap Images Horizontally
-        if action == swap_horizontally:
-            # If first row
-            if (self.objectName() == "photoViewer_01") or (self.objectName() == "photoViewer_02"):
-                self.swapImages(window.photoViewer_01, window.photoViewer_02)
-            # If second row
-            else:
-                self.swapImages(window.photoViewer_03, window.photoViewer_04)
+        # Swap Images Left
+        if action == swap_left:
+            tmp_img = img_paths[row][col]
+            img_paths[row][col] = img_paths[row][col-1]
+            img_paths[row][col - 1] = tmp_img
+            window.construct_grid()
 
-        # Swap Images Vertically
-        if action == swap_vertically:
-            # If first column
-            if (self.objectName() == "photoViewer_01") or (self.objectName() == "photoViewer_03"):
-                self.swapImages(window.photoViewer_01, window.photoViewer_03)
-            # Second column
-            else:
-                self.swapImages(window.photoViewer_02, window.photoViewer_04)
+        # Swap Images Right
+        if action == swap_right:
+            tmp_img = img_paths[row][col]
+            img_paths[row][col] = img_paths[row][col+1]
+            img_paths[row][col+1] = tmp_img
+            window.construct_grid()
 
-        # Swap Images Diagonally
-        if action == swap_diagonally:
-            if (self.objectName() == "photoViewer_01") or (self.objectName() == "photoViewer_04"):
-                self.swapImages(window.photoViewer_01, window.photoViewer_04)
-            else:
-                self.swapImages(window.photoViewer_02, window.photoViewer_03)
+        # Swap Images Up
+        if action == swap_up:
+            tmp_img = img_paths[row][col]
+            img_paths[row][col] = img_paths[row-1][col]
+            img_paths[row-1][col] = tmp_img
+            window.construct_grid()
 
-    # Swap 2 provided images
-    def swapImages(self, photo_viewer1, photo_viewer2):
-        global img_path_1, img_path_2, img_path_3, img_path_4
-        path1 = photo_viewer1.file_path
-        path2 = photo_viewer2.file_path
-        if path1 == "":
-            photo_viewer2.file_path = ""
-            photo_viewer2.setText("\n\n Drop Image Here \n\n or Take a Screenshot \n\n")
-            self.assignImagePath(photo_viewer2.objectName(), default_image_path)
-        else:
-            photo_viewer2.file_path = path1
-            self.assignImagePath(photo_viewer2.objectName(), path1)
-            icon = QtGui.QPixmap(path1)
-            photo_viewer2.setPixmap(
-                icon.scaled(photo_viewer2.size(), QtCore.Qt.KeepAspectRatioByExpanding,
-                            QtCore.Qt.SmoothTransformation))
-            photo_viewer2.setAlignment(QtCore.Qt.AlignCenter)
-        if path2 == "":
-            photo_viewer1.file_path = ""
-            photo_viewer1.setText("\n\n Drop Image Here \n\n or Take a Screenshot \n\n")
-            self.assignImagePath(photo_viewer1.objectName(), default_image_path)
-        else:
-            photo_viewer1.file_path = path2
-            self.assignImagePath(photo_viewer1.objectName(), path2)
-            icon = QtGui.QPixmap(path2)
-            photo_viewer1.setPixmap(
-                icon.scaled(photo_viewer1.size(), QtCore.Qt.KeepAspectRatioByExpanding,
-                            QtCore.Qt.SmoothTransformation))
-            photo_viewer1.setAlignment(QtCore.Qt.AlignCenter)
+        # Swap Images Down
+        if action == swap_down:
+            tmp_img = img_paths[row][col]
+            img_paths[row][col] = img_paths[row+1][col]
+            img_paths[row+1][col] = tmp_img
+            window.construct_grid()
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasImage:
@@ -189,8 +193,10 @@ class MainWindow(QtWidgets.QWidget):
         self.top_buttons_layout = QtWidgets.QHBoxLayout()
         self.left_buttons_layout = QtWidgets.QVBoxLayout()
         self.images_layout = QtWidgets.QVBoxLayout()
-        self.right_button_layout = QtWidgets.QHBoxLayout()
+        self.right_button_layout = QtWidgets.QVBoxLayout()
+        self.right_button_layout.setSpacing(0)
         self.bottom_button_layout = QtWidgets.QHBoxLayout()
+        self.bottom_button_layout.setSpacing(0)
 
 
         # Main Layout
@@ -230,17 +236,23 @@ class MainWindow(QtWidgets.QWidget):
             button1 = QtWidgets.QPushButton()
             button1.setToolTip('Merge column')
             if combined_cols[c] == 1:
-                button1.setIcon(QtGui.QIcon("./img/SVG/demerge-column-color.svg"))
+                button1.setIcon(QtGui.QIcon("./img/SVG/demerge-column.svg"))
             else:
-                button1.setIcon(QtGui.QIcon("./img/SVG/merge-column-color.svg"))
+                button1.setIcon(QtGui.QIcon("./img/SVG/merge-column.svg"))
             button1.clicked.connect(lambda state, x=c: self.combine_column(x))
-            button2 = QtWidgets.QPushButton()
-            button2.setToolTip('Delete column')
-            button2.setIcon(QtGui.QIcon("./img/SVG/del-column-color.svg"))
-            button2.setFixedWidth(30)
-            button2.clicked.connect(lambda state, x=c: self.remove_column(x))
+            # button2 = QtWidgets.QPushButton()
+            # button2.setToolTip('Insert column')
+            # button2.setIcon(QtGui.QIcon("./img/SVG/insert-column.svg"))
+            # button2.setFixedWidth(30)
+            # button2.clicked.connect(lambda state, x=c: self.insert_column(x))
+            # button3 = QtWidgets.QPushButton()
+            # button3.setToolTip('Delete column')
+            # button3.setIcon(QtGui.QIcon("./img/SVG/del-column.svg"))
+            # button3.setFixedWidth(30)
+            # button3.clicked.connect(lambda state, x=c: self.remove_column(x))
+            # elem_layout.addWidget(button2)
+            # elem_layout.addWidget(button3)
             elem_layout.addWidget(button1)
-            elem_layout.addWidget(button2)
             elem_layout.setSpacing(0)
             self.top_buttons_layout.addLayout(elem_layout)
 
@@ -250,25 +262,35 @@ class MainWindow(QtWidgets.QWidget):
             button1 = QtWidgets.QPushButton()
             button1.setToolTip('Merge row')
             if combined_rows[r] == 1:
-                button1.setIcon(QtGui.QIcon("./img/SVG/demerge-row-color.svg"))
+                button1.setIcon(QtGui.QIcon("./img/SVG/demerge-row.svg"))
             else:
-                button1.setIcon(QtGui.QIcon("./img/SVG/merge-row-color.svg"))
+                button1.setIcon(QtGui.QIcon("./img/SVG/merge-row.svg"))
             button1.clicked.connect(lambda state, x=r: self.combine_row(x))
             button1.setFixedWidth(25)
             button1.setSizePolicy(
                 QtWidgets.QSizePolicy.Preferred,
                 QtWidgets.QSizePolicy.Expanding)
-            button2 = QtWidgets.QPushButton()
-            button2.setToolTip('Delete row')
-            button2.setIcon(QtGui.QIcon("./img/SVG/del-row-color.svg"))
-            button2.clicked.connect(lambda state, x=r: self.remove_row(x))
-            button2.setFixedWidth(25)
-            button2.setFixedHeight(25)
-            button2.setSizePolicy(
-                QtWidgets.QSizePolicy.Preferred,
-                QtWidgets.QSizePolicy.Expanding)
+            # button2 = QtWidgets.QPushButton()
+            # button2.setToolTip('Insert row')
+            # button2.setIcon(QtGui.QIcon("./img/SVG/insert-row.svg"))
+            # button2.clicked.connect(lambda state, x=r: self.insert_row(x))
+            # button2.setFixedWidth(25)
+            # button2.setFixedHeight(25)
+            # button2.setSizePolicy(
+            #     QtWidgets.QSizePolicy.Preferred,
+            #     QtWidgets.QSizePolicy.Expanding)
+            # button3 = QtWidgets.QPushButton()
+            # button3.setToolTip('Delete row')
+            # button3.setIcon(QtGui.QIcon("./img/SVG/del-row.svg"))
+            # button3.clicked.connect(lambda state, x=r: self.remove_row(x))
+            # button3.setFixedWidth(25)
+            # button3.setFixedHeight(25)
+            # button3.setSizePolicy(
+            #     QtWidgets.QSizePolicy.Preferred,
+            #     QtWidgets.QSizePolicy.Expanding)
             elem_layout.addWidget(button1)
-            elem_layout.addWidget(button2)
+            # elem_layout.addWidget(button2)
+            # elem_layout.addWidget(button3)
             elem_layout.setSpacing(0)
             self.left_buttons_layout.addLayout(elem_layout)
 
@@ -328,25 +350,45 @@ class MainWindow(QtWidgets.QWidget):
                         elem_layout.setSpacing(2)
 
         # Right Button Layout
-        button = QtWidgets.QPushButton()
-        button.setToolTip('Add new column')
-        button.setIcon(QtGui.QIcon("./img/SVG/add-column-color.svg"))
-        button.setIconSize(QtCore.QSize(20, 20))
-        button.setFixedWidth(40)
-        button.setSizePolicy(
+        button1 = QtWidgets.QPushButton()
+        button1.setToolTip('Add new column')
+        button1.setIcon(QtGui.QIcon("./img/SVG/add-column.svg"))
+        button1.setIconSize(QtCore.QSize(20, 20))
+        button1.setFixedWidth(40)
+        button1.setSizePolicy(
             QtWidgets.QSizePolicy.Preferred,
             QtWidgets.QSizePolicy.Expanding)
-        button.clicked.connect(self.add_column)
-        self.right_button_layout.addWidget(button)
+        button1.clicked.connect(self.add_column)
+        button2 = QtWidgets.QPushButton()
+        button2.setToolTip('Hide column')
+        button2.setIcon(QtGui.QIcon("./img/SVG/hide-column.svg"))
+        button2.setIconSize(QtCore.QSize(20, 20))
+        button2.setFixedWidth(40)
+        button2.setFixedHeight(40)
+        button2.setSizePolicy(
+            QtWidgets.QSizePolicy.Preferred,
+            QtWidgets.QSizePolicy.Expanding)
+        button2.clicked.connect(self.hide_column)
+        self.right_button_layout.addWidget(button2)
+        self.right_button_layout.addWidget(button1)
 
         # Bottom Button Layout
-        button = QtWidgets.QPushButton()
-        button.setIcon(QtGui.QIcon("./img/SVG/add-row-color.svg"))
-        button.setToolTip('Add new row')
-        button.setIconSize(QtCore.QSize(20, 20))
-        button.clicked.connect(self.add_row)
-        button.setFixedHeight(40)
-        self.bottom_button_layout.addWidget(button)
+        button1 = QtWidgets.QPushButton()
+        button1.setIcon(QtGui.QIcon("./img/SVG/add-row.svg"))
+        button1.setToolTip('Add new row')
+        button1.setIconSize(QtCore.QSize(20, 20))
+        button1.clicked.connect(self.add_row)
+        button1.setFixedHeight(40)
+        button2 = QtWidgets.QPushButton()
+        button2.setIcon(QtGui.QIcon("./img/SVG/hide-row.svg"))
+        button2.setToolTip('Hide row')
+        button2.setIconSize(QtCore.QSize(20, 20))
+        button2.clicked.connect(self.hide_row)
+        button2.setFixedHeight(40)
+        button2.setFixedWidth(40)
+        self.bottom_button_layout.addWidget(button1)
+        self.bottom_button_layout.addWidget(button2)
+
         # Using setFixedSize: (width, height)
         self.setFixedSize(150 * self.pyqt_num_of_cols + 180, 130 * self.pyqt_num_of_rows + 180 + 100)
         QtCore.QTimer.singleShot(1, lambda: self.show_grid_images())
@@ -402,33 +444,66 @@ class MainWindow(QtWidgets.QWidget):
             self.pyqt_num_of_cols += 1
             self.construct_grid()
 
+    def hide_column(self):
+        if self.pyqt_num_of_cols > 1:
+            self.pyqt_num_of_cols -= 1
+            self.construct_grid()
+
+    def insert_column(self, col):
+        global combined_cols
+        global img_paths,  default_image_path
+        # if self.pyqt_num_of_cols > 1:
+        #     self.pyqt_num_of_cols -= 1
+        combined_cols.insert(col, False)
+        combined_cols.pop()
+        for i in img_paths:
+            i.insert(col, default_image_path)
+            i.pop()
+        self.construct_grid()
+
+    def insert_row(self, row):
+        global combined_rows
+        global img_paths, default_image_path
+        # if self.pyqt_num_of_rows > 1:
+        #     self.pyqt_num_of_rows -= 1
+        combined_rows.insert(row, False)
+        combined_rows.pop()
+        self.construct_grid()
+        img_paths.insert(row, [default_image_path] * 15)
+        img_paths.pop()
+
     def remove_column(self, number):
         global combined_cols
         global img_paths,  default_image_path
-        if self.pyqt_num_of_cols > 1:
-            self.pyqt_num_of_cols -= 1
-            combined_cols.pop(number)
-            combined_cols.append(False)
-            for i in img_paths:
-                i.pop(number)
-                i.append(default_image_path)
-            self.construct_grid()
+        # if self.pyqt_num_of_cols > 1:
+        #     self.pyqt_num_of_cols -= 1
+        combined_cols.pop(number)
+        combined_cols.append(False)
+        for i in img_paths:
+            i.pop(number)
+            i.append(default_image_path)
+        self.construct_grid()
 
     def add_row(self):
         if self.pyqt_num_of_rows < 7:
             self.pyqt_num_of_rows += 1
             self.construct_grid()
 
+    def hide_row(self):
+        if self.pyqt_num_of_rows > 1:
+            self.pyqt_num_of_rows -= 1
+            self.construct_grid()
+
     def remove_row(self, number):
         global combined_rows
         global img_paths, default_image_path
-        if self.pyqt_num_of_rows > 1:
-            self.pyqt_num_of_rows -= 1
-            combined_rows.pop(number)
-            combined_rows.append(False)
-            self.construct_grid()
-            img_paths.pop(number)
-            img_paths.append([default_image_path] * 15)
+        # if self.pyqt_num_of_rows > 1:
+        #     self.pyqt_num_of_rows -= 1
+        combined_rows.pop(number)
+        combined_rows.append(False)
+        self.construct_grid()
+        img_paths.pop(number)
+        img_paths.append([default_image_path] * 15)
 
     def combine_column(self, number):
         global combined_rows, combined_cols, any_col_combined, any_row_combined
@@ -437,7 +512,6 @@ class MainWindow(QtWidgets.QWidget):
         combined_cols[number] = not combined_cols[number]
         if any(combined_cols):
             any_col_combined = True
-
         self.construct_grid()
 
     def combine_row(self, number):
@@ -694,26 +768,6 @@ class Opencv:
                 if not self.show_rectangle:
                     self.show_rectangle = True
 
-    # # Method defines base resolution for each image using width1, width2, height1, height2 global variables
-    # # 0:img1, 1:img2, 2:img3, 3:img4, 4:img1+img2, 5:img3+img4, 6:img1+img3, 7:img2+img4, 8:img1+img2+img2+img4
-    # def set_base_resolution(self):
-    #     self.base_resolution = [(width1, height1),
-    #                             (width2, height1),
-    #                             (width1, height2),
-    #                             (width2, height2)]
-    #                             # (width1+width2, height1),
-    #                             # (width1+width2, height2),
-    #                             # (width1, height1+height2),
-    #                             # (width2, height1+height2),
-    #                             # (width1+width2, height1+height2)]
-    #
-    # # Method defines base save resolution for each image using width1, width2, height1, height2 global variables
-    # def set_base_save_resolution(self):
-    #     self.base_save_resolution = [(self.save_width1, self.save_height1),
-    #                                  (self.save_width2, self.save_height1),
-    #                                  (self.save_width1, self.save_height2),
-    #                                  (self.save_width2, self.save_height2)]
-
     def set_total_resolution(self):
         global width_total, height_total, num_of_rows, num_of_cols
         width_total = 0
@@ -912,105 +966,12 @@ class Opencv:
         # Resize with save resolution (1600px or smaller if images small)
         if resize:
             if combined == "rows":
-                img_edit = cv2.resize(img_edit, (width_save_total, cell_save_heights[row]),  interpolation=cv2.INTER_AREA)
+                img_edit = cv2.resize(img_edit, (width_save_total + num_of_cols - 1, cell_save_heights[row]),  interpolation=cv2.INTER_AREA)
             elif combined == "columns":
-                img_edit = cv2.resize(img_edit, (cell_save_widths[col], height_save_total), interpolation=cv2.INTER_AREA)
+                img_edit = cv2.resize(img_edit, (cell_save_widths[col], height_save_total + num_of_rows - 1), interpolation=cv2.INTER_AREA)
             else:
                 img_edit = cv2.resize(img_edit, (cell_save_widths[col], cell_save_heights[row]), interpolation=cv2.INTER_AREA)
         return img_edit
-
-    # Save Image
-    def save_image_old(self, path):
-        if self.loop_type == 1:
-            current_resolution = width1 / zoom[0]
-            # Calculating resolution for save image
-            if current_resolution < save_resolution:
-                self.save_width1 = int(width1 / min(zoom))
-                self.save_width2 = int(width2 / min(zoom))
-                self.save_height1 = int(height1 / min(zoom))
-                self.save_height2 = int(height2 / min(zoom))
-            else:
-                coefficient = 1600 / width1
-                self.save_width1 = int(width1 * coefficient)
-                self.save_width2 = int(width2 * coefficient)
-                self.save_height1 = int(height1 * coefficient)
-                self.save_height2 = int(height2 * coefficient)
-
-            self.set_base_save_resolution()
-
-            # Creating save images
-            img_1_save = self.create_save_image(self.img_1, 0)
-            stack = img_1_save
-            # Stacking save images
-            # border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
-            # stack = np.hstack((img_1_save, border_h1, img_2_save))
-            cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
-                          (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
-            cv2.imwrite(path, stack)
-
-        if self.loop_type == 2:
-            current_resolution = (width1 + width2) / min(zoom[0], zoom[1])
-            # Calculating resolution for save image
-            if current_resolution < save_resolution:
-                self.save_width1 = int(width1 / min(zoom))
-                self.save_width2 = int(width2 / min(zoom))
-                self.save_height1 = int(height1 / min(zoom))
-                self.save_height2 = int(height2 / min(zoom))
-            else:
-                coefficient = 1600 / (width1 + width2)
-                self.save_width1 = int(width1 * coefficient)
-                self.save_width2 = int(width2 * coefficient)
-                self.save_height1 = int(height1 * coefficient)
-                self.save_height2 = int(height2 * coefficient)
-
-            self.set_base_save_resolution()
-
-            # Creating save images
-            img_1_save = self.create_save_image(self.img_1, 0)
-            img_2_save = self.create_save_image(self.img_2, 1)
-
-            # Stacking save images
-            border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
-            stack = np.hstack((img_1_save, border_h1, img_2_save))
-            cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
-                          (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
-
-            cv2.imwrite(path, stack)
-
-        if self.loop_type == 6:
-            current_resolution = (width1 + width2) / min(zoom)
-            # Calculating resolution for save image
-            if current_resolution < save_resolution:
-                self.save_width1 = int(width1 / min(zoom))
-                self.save_width2 = int(width2 / min(zoom))
-                self.save_height1 = int(height1 / min(zoom))
-                self.save_height2 = int(height2 / min(zoom))
-            else:
-                coefficient = 1600 / (width1 + width2)
-                self.save_width1 = int(width1 * coefficient)
-                self.save_width2 = int(width2 * coefficient)
-                self.save_height1 = int(height1 * coefficient)
-                self.save_height2 = int(height2 * coefficient)
-
-            self.set_base_save_resolution()
-
-            # Creating save images
-            img_1_save = self.create_save_image(self.img_1, 0)
-            img_2_save = self.create_save_image(self.img_2, 1)
-            img_3_save = self.create_save_image(self.img_3, 2)
-            img_4_save = self.create_save_image(self.img_4, 3)
-
-            # Stacking save images
-            border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
-            stack1 = np.hstack((img_1_save, border_h1, img_2_save))
-            border_h2 = np.zeros((self.save_height2, 1, 3), dtype='uint8')
-            stack2 = np.hstack((img_3_save, border_h2, img_4_save))
-            border_w = np.zeros((1, self.save_width1 + self.save_width2 + 1, 3), dtype='uint8')
-            stack = np.vstack((stack1, border_w, stack2))
-            cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
-                          (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
-
-            cv2.imwrite(path, stack)
 
     # Save Image
     def save_image(self, path):
@@ -1046,11 +1007,6 @@ class Opencv:
                     for row in range(num_of_rows):
                         img_edit = self.create_image(self.images[row][col], row, col, combined="none", resize=False)
                         cell_scale_coefs.append(img_edit.shape[1] / cell_widths[col])
-        # print(cell_scale_coefs)
-
-        print(f"len(cell_widths): {len(cell_widths)}")
-        print(f"len(cell_save_widths): {len(cell_save_widths)}")
-        print(f"max(cell_scale_coefs): {max(cell_scale_coefs)}")
 
         # Calculation of global list vars "cell_save_widths[]" and "cell_save_heights[]"
         if width_total * max(cell_scale_coefs) < save_resolution_width:
@@ -1083,7 +1039,9 @@ class Opencv:
             for row in range(num_of_rows):
                 # If current row combined
                 if combined_rows[row]:
-                    stack_r = self.create_save_image(self.images[row][0], row, 0, combined="rows")
+                    border_h = np.zeros((cell_save_heights[row], 1, 3), dtype='uint8')
+                    img_edit = self.create_save_image(self.images[row][0], row, 0, combined="rows")
+                    stack_r = np.hstack((border_h, img_edit, border_h))
                 # If current row not combined
                 else:
                     # Usual image border and highlighted border
@@ -1100,13 +1058,15 @@ class Opencv:
         # If we have combined columns
         else:
             # print("COLUMNS")
-            border_h = np.zeros((height_save_total + num_of_rows, 1, 3), dtype='uint8')
+            border_h = np.zeros((height_save_total + num_of_rows + 1, 1, 3), dtype='uint8')
             stack = border_h.copy()
             for col in range(num_of_cols):
                 # If current column combined
 
                 if combined_cols[col]:
-                    stack_c = self.create_save_image(self.images[0][col], 0, col, combined="columns")
+                    border_w = np.zeros((1, cell_save_widths[col], 3), dtype='uint8')
+                    img_edit = self.create_save_image(self.images[0][col], 0, col, combined="columns")
+                    stack_c = np.vstack((border_w, img_edit, border_w))
                 # If current column not combined
                 else:
                     # Usual image border and highlighted border
@@ -1120,141 +1080,54 @@ class Opencv:
                         stack_c = np.vstack((stack_c, img_edit, border_w))
                 stack = np.hstack((stack, stack_c, border_h))
         cv2.imwrite(path, stack)
-        # Thin black border all over the image
-
-
-
-        # if self.loop_type == 1:
-        #     current_resolution = width1 / zoom[0]
-        #     # Calculating resolution for save image
-        #     if current_resolution < save_resolution:
-        #         self.save_width1 = int(width1 / min(zoom))
-        #         self.save_width2 = int(width2 / min(zoom))
-        #         self.save_height1 = int(height1 / min(zoom))
-        #         self.save_height2 = int(height2 / min(zoom))
-        #     else:
-        #         coefficient = 1600 / width1
-        #         self.save_width1 = int(width1 * coefficient)
-        #         self.save_width2 = int(width2 * coefficient)
-        #         self.save_height1 = int(height1 * coefficient)
-        #         self.save_height2 = int(height2 * coefficient)
-        #
-        #     self.set_base_save_resolution()
-        #
-        #     # Creating save images
-        #     img_1_save = self.create_save_image(self.img_1, 0)
-        #     stack = img_1_save
-        #     # Stacking save images
-        #     # border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
-        #     # stack = np.hstack((img_1_save, border_h1, img_2_save))
-        #     cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
-        #                   (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
-        #     cv2.imwrite(path, stack)
-        #
-        # if self.loop_type == 2:
-        #     current_resolution = (width1 + width2) / min(zoom[0], zoom[1])
-        #     # Calculating resolution for save image
-        #     if current_resolution < save_resolution:
-        #         self.save_width1 = int(width1 / min(zoom))
-        #         self.save_width2 = int(width2 / min(zoom))
-        #         self.save_height1 = int(height1 / min(zoom))
-        #         self.save_height2 = int(height2 / min(zoom))
-        #     else:
-        #         coefficient = 1600 / (width1 + width2)
-        #         self.save_width1 = int(width1 * coefficient)
-        #         self.save_width2 = int(width2 * coefficient)
-        #         self.save_height1 = int(height1 * coefficient)
-        #         self.save_height2 = int(height2 * coefficient)
-        #
-        #     self.set_base_save_resolution()
-        #
-        #     # Creating save images
-        #     img_1_save = self.create_save_image(self.img_1, 0)
-        #     img_2_save = self.create_save_image(self.img_2, 1)
-        #
-        #     # Stacking save images
-        #     border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
-        #     stack = np.hstack((img_1_save, border_h1, img_2_save))
-        #     cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
-        #                   (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
-        #
-        #     cv2.imwrite(path, stack)
-
-        # if self.loop_type == 6:
-        #     current_resolution = (width1 + width2) / min(zoom)
-        #     # Calculating resolution for save image
-        #     if current_resolution < save_resolution:
-        #         self.save_width1 = int(width1 / min(zoom))
-        #         self.save_width2 = int(width2 / min(zoom))
-        #         self.save_height1 = int(height1 / min(zoom))
-        #         self.save_height2 = int(height2 / min(zoom))
-        #     else:
-        #         coefficient = 1600 / (width1 + width2)
-        #         self.save_width1 = int(width1 * coefficient)
-        #         self.save_width2 = int(width2 * coefficient)
-        #         self.save_height1 = int(height1 * coefficient)
-        #         self.save_height2 = int(height2 * coefficient)
-        #
-        #     self.set_base_save_resolution()
-        #
-        #     # Creating save images
-        #     img_1_save = self.create_save_image(self.img_1, 0)
-        #     img_2_save = self.create_save_image(self.img_2, 1)
-        #     img_3_save = self.create_save_image(self.img_3, 2)
-        #     img_4_save = self.create_save_image(self.img_4, 3)
-        #
-        #     # Stacking save images
-        #     border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
-        #     stack1 = np.hstack((img_1_save, border_h1, img_2_save))
-        #     border_h2 = np.zeros((self.save_height2, 1, 3), dtype='uint8')
-        #     stack2 = np.hstack((img_3_save, border_h2, img_4_save))
-        #     border_w = np.zeros((1, self.save_width1 + self.save_width2 + 1, 3), dtype='uint8')
-        #     stack = np.vstack((stack1, border_w, stack2))
-        #     cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
-        #                   (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
-        #
-        #     cv2.imwrite(path, stack)
 
     # Save Image for Zenly (Saving 3 images)
     def save_image_zenly(self, path):
-        if self.loop_type == 6:
-            current_resolution = (width1 + width2) / min(zoom)
-            # Calculating resolution for save image
-            if current_resolution < save_resolution:
-                self.save_width1 = int(width1 / min(zoom))
-                self.save_width2 = int(width2 / min(zoom))
-                self.save_height1 = int(height1 / min(zoom))
-                self.save_height2 = int(height2 / min(zoom))
-            else:
-                coefficient = 1600 / (width1 + width2)
-                self.save_width1 = int(width1 * coefficient)
-                self.save_width2 = int(width2 * coefficient)
-                self.save_height1 = int(height1 * coefficient)
-                self.save_height2 = int(height2 * coefficient)
+        min_zoom = min(zoom[0][0], zoom[0][1], zoom[1][0], zoom[1][1])
+        current_resolution = (cell_widths[0] + cell_widths[1]) / min_zoom
+        # Calculating resolution for save image
+        if current_resolution < save_resolution_width:
+            save_width1 = int(cell_widths[0] / min_zoom)
+            save_width2 = int(cell_widths[1] / min_zoom)
+            save_height1 = int(cell_heights[0] / min_zoom)
+            save_height2 = int(cell_heights[1] / min_zoom)
+        else:
+            coefficient = 1600 / (cell_widths[0] + cell_widths[1])
+            save_width1 = int(cell_widths[0] * coefficient)
+            save_width2 = int(cell_widths[1] * coefficient)
+            save_height1 = int(cell_heights[0] * coefficient)
+            save_height2 = int(cell_heights[1] * coefficient)
 
-            self.set_base_save_resolution()
+        base_save_resolution = [(save_width1, save_height1),
+                                 (save_width2, save_height1),
+                                 (save_width1, save_height2),
+                                 (save_width2, save_height2)]
 
-            # Creating save images
-            img_1_save = self.create_save_image(self.img_1, 0)
-            img_2_save = self.create_save_image(self.img_2, 1)
-            img_3_save = self.create_save_image(self.img_3, 2)
-            img_4_save = self.create_save_image(self.img_4, 3)
+        # Creating save images
+        img_1_save = self.create_image(self.images[0][0], 0, 0, "none", resize=False)
+        img_1_save = cv2.resize(img_1_save, base_save_resolution[0], interpolation=cv2.INTER_AREA)
+        img_2_save = self.create_image(self.images[0][1], 0, 1, "none", resize=False)
+        img_2_save = cv2.resize(img_2_save, base_save_resolution[1], interpolation=cv2.INTER_AREA)
+        img_3_save = self.create_image(self.images[1][0], 1, 0, "none", resize=False)
+        img_3_save = cv2.resize(img_3_save, base_save_resolution[2], interpolation=cv2.INTER_AREA)
+        img_4_save = self.create_image(self.images[1][1], 1, 1, "none", resize=False)
+        img_4_save = cv2.resize(img_4_save, base_save_resolution[3], interpolation=cv2.INTER_AREA)
 
-            # Stacking save images
-            border_h1 = np.zeros((self.save_height1, 1, 3), dtype='uint8')
-            stack1 = np.hstack((img_1_save, border_h1, img_2_save))
+        # Stacking save images
+        border_h1 = np.zeros((save_height1, 1, 3), dtype='uint8')
+        stack1 = np.hstack((img_1_save, border_h1, img_2_save))
 
-            border_h2 = np.zeros((self.save_height2, 1, 3), dtype='uint8')
-            stack2 = np.hstack((img_3_save, border_h2, img_4_save))
+        border_h2 = np.zeros((save_height2, 1, 3), dtype='uint8')
+        stack2 = np.hstack((img_3_save, border_h2, img_4_save))
 
-            border_w = np.zeros((1, self.save_width1 + self.save_width2 + 1, 3), dtype='uint8')
-            stack = np.vstack((stack1, border_w, stack2))
-            cv2.rectangle(stack, (self.save_width1 - 1, self.save_height1 - 1),
-                          (self.save_width1 + 1, self.save_height1 + 1), (100, 100, 100), -1)
+        border_w = np.zeros((1, save_width1 + save_width2 + 1, 3), dtype='uint8')
+        stack = np.vstack((stack1, border_w, stack2))
+        cv2.rectangle(stack, (save_width1 - 1, save_height1 - 1),
+                      (save_width1 + 1, save_height1 + 1), (100, 100, 100), -1)
 
-            cv2.imwrite(path[:-4] + "_SC_Engine_00" + path[-4:], stack1)
-            cv2.imwrite(path[:-4] + "_SC_DDC_00" + path[-4:], stack2)
-            cv2.imwrite(path, stack)
+        cv2.imwrite(path[:-4] + "_SC_Engine_00" + path[-4:], stack1)
+        cv2.imwrite(path[:-4] + "_SC_DDC_00" + path[-4:], stack2)
+        cv2.imwrite(path, stack)
 
     # When mouse event runs this method
     def mouse_event(self, event, x, y, flags, params):
@@ -1341,6 +1214,7 @@ class Opencv:
         if y > height_total - 9:
             self.mouse_on_type = "border_h"
             self.mouse_on_num = num_of_rows - 1
+            print("border_h")
             return
         # Vertical Grid
         width = 1
@@ -1450,6 +1324,7 @@ cell_save_heights = [0 for i in range(rows)]
 # cell_sizes = [[[0 for a in range(2)] for i in range(cols)] for j in range(rows)]
 
 app = QtWidgets.QApplication([])
+app.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus, False)
 window = MainWindow()
 window.show()
 app.exec()
