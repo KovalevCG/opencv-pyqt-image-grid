@@ -8,6 +8,8 @@ import sys
 import os
 import ctypes
 from datetime import date
+import time
+import math
 
 
 # ##############################
@@ -18,7 +20,7 @@ class ImageLabel(QtWidgets.QLabel):
     def __init__(self):
         super(ImageLabel, self).__init__()
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setText("\n\n Drop Image Here \n\n or Take a Screenshot \n\n")
+        # self.setText("\n\n Drop Image Here \n\n or Take a Screenshot \n\n")
         # self.setScaledContents(True)
         self.setStyleSheet('''
             QLabel{
@@ -26,7 +28,6 @@ class ImageLabel(QtWidgets.QLabel):
             }
         ''')
         self.setAcceptDrops(True)
-        # self.file_path = ""
         self.setScaledContents(False)
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
         # self.setFixedSize(100, 100)
@@ -121,8 +122,9 @@ class ImageLabel(QtWidgets.QLabel):
     def dropEvent(self, event):
         if event.mimeData().hasImage:
             event.setDropAction(QtCore.Qt.CopyAction)
-            self.file_path = event.mimeData().urls()[0].toLocalFile()
-            self.set_image(self.file_path)
+            file_path = event.mimeData().urls()[0].toLocalFile()
+            self.set_image(file_path)
+            self.assignImagePath(self.objectName(), file_path)
             event.accept()
         else:
             event.ignore()
@@ -132,7 +134,12 @@ class ImageLabel(QtWidgets.QLabel):
         icon = QtGui.QPixmap(file_path)
         self.setPixmap(icon.scaled(self.size(), QtCore.Qt.KeepAspectRatioByExpanding, QtCore.Qt.SmoothTransformation))
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.assignImagePath(self.objectName(), file_path)
+
+    # Put Placeholder on QLabel
+    def set_placeholder(self):
+        icon = QtGui.QPixmap("./img/bg_image_qt_3.png")
+        self.setPixmap(icon.scaled(self.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+        self.setAlignment(QtCore.Qt.AlignCenter)
 
     # Set "img_paths" Global Variable
     def assignImagePath(self, obj_name, path):
@@ -149,8 +156,14 @@ class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self.pyqt_num_of_cols = 2
-        self.pyqt_num_of_rows = 2
+
+
+        self.settings = QSettings("Image Grid", "Alexander Kovalev", self)
+
+        self.pyqt_num_of_cols = None
+        self.pyqt_num_of_rows = None
+
+        self.load_settings()
 
 
         # Main Window
@@ -217,6 +230,19 @@ class MainWindow(QtWidgets.QWidget):
         self.main_layout.addWidget(self.save_as_button, 7, 1, 1, 1)
 
         self.setLayout(self.main_layout)
+
+    def load_settings(self):
+        global save_path
+        self.pyqt_num_of_cols = self.settings.value("self.pyqt_num_of_cols", 2)
+        self.pyqt_num_of_rows = self.settings.value("self.pyqt_num_of_rows", 2)
+        save_path = self.settings.value("save_path", os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop'))
+
+    def save_settings(self):
+        self.settings.setValue("self.pyqt_num_of_cols", self.pyqt_num_of_cols)
+        self.settings.setValue("self.pyqt_num_of_rows", self.pyqt_num_of_rows)
+        self.settings.setValue("save_path", save_path)
+
+
 
     # Creation of Images Grid
     def construct_grid(self):
@@ -302,7 +328,6 @@ class MainWindow(QtWidgets.QWidget):
 
         # If we don't have combined columns
         if not any(combined_cols):
-            print("ROWS PyQt")
             images_vertical_layout = QtWidgets.QVBoxLayout()
             self.images_layout.addLayout(images_vertical_layout)
             for r in range(self.pyqt_num_of_rows):
@@ -325,7 +350,6 @@ class MainWindow(QtWidgets.QWidget):
                         elem_layout.setSpacing(2)
         # If we have combined columns
         else:
-            print("COLUMNS PyQt")
             images_horizontal_layout = QtWidgets.QHBoxLayout()
             self.images_layout.addLayout(images_horizontal_layout)
             for c in range(self.pyqt_num_of_cols):
@@ -412,9 +436,9 @@ class MainWindow(QtWidgets.QWidget):
         # Adding Buttons to Layout
         layout.addWidget(screen_btn1)
         if len(QApplication.screens()) > 1:
-            layout.addWidget(self.screen_btn2)
+            layout.addWidget(screen_btn2)
         if len(QApplication.screens()) > 2:
-            layout.addWidget(self.screen_btn3)
+            layout.addWidget(screen_btn3)
         # Clicked Connect
         screen_btn1.clicked.connect(lambda state, x=r, y=c: self.hide_me_for_screenshot(0, x, y))
         screen_btn2.clicked.connect(lambda state, x=r, y=c: self.hide_me_for_screenshot(1, x, y))
@@ -426,7 +450,13 @@ class MainWindow(QtWidgets.QWidget):
     def show_grid_images(self):
         for r in range(self.pyqt_num_of_rows):
             for c in range(self.pyqt_num_of_cols):
-                self.photoViewer[r][c].set_image(img_paths[r][c])
+                if img_paths[r][c] != default_image_path:
+                    self.photoViewer[r][c].set_image(img_paths[r][c])
+                else:
+                    if (combined_rows[r]) or (combined_cols[c]):
+                        self.photoViewer[r][c].set_placeholder()
+                    else:
+                        self.photoViewer[r][c].set_image("./img/bg_image_qt_3.png")
 
     # Dimensions of multidimensional list
     def dim(self, a):
@@ -570,7 +600,6 @@ class MainWindow(QtWidgets.QWidget):
         self.menu_bar.show()
 
     def show_about(self):
-        print("show about")
         about_box = QMessageBox()
         # about_box.setFixedSize(500, 200);
         about_box.setIcon(QMessageBox.Information)
@@ -580,6 +609,7 @@ class MainWindow(QtWidgets.QWidget):
         about_box.exec_()
 
     def closeEvent(self, event):
+        self.save_settings()
         self.close_opencv()
         event.accept()
 
@@ -597,14 +627,18 @@ class MainWindow(QtWidgets.QWidget):
         # , combined_rows, combined_cols
 
     def save_file_dialog(self):
+        global save_path
         # if os.path.basename(img_path_1) != "screenshot_1.png" and os.path.basename(img_path_1) != "bg_image.png":
         #     cur_path = os.path.dirname(img_path_1)
         # else:
-        cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+        # cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
         # cur_path = "d:/"
-        save_file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", cur_path+"/Image.jpg",
+        path = save_path + f'//ImageGrid_{str(int(time.time()))[2:]}.jpg'
+        print(path)
+        save_file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", path,
                                                                   "Image (*.jpg);;Image (*.png)")
         if save_file_name:
+            save_path = os.path.dirname(save_file_name)
             self.opencv.save_image(save_file_name)
 
     def save_file_dialog_zenly(self):
@@ -624,7 +658,6 @@ class MainWindow(QtWidgets.QWidget):
 
     def make_screenshot(self, scrn, r, c):
         global img_paths
-        print(f"screen: {scrn}")
         screen = QtWidgets.QApplication.screens()[scrn]
         screenshot = screen.grabWindow(0)
         filename = f"img/screenshot_{r:02}_{c:02}.png"
@@ -656,11 +689,10 @@ class Opencv:
         self.mouse_on_arr = [None, None]
         self.highlight_color = (220, 220, 0)
         self.images = []
-        # self.save_width1 = None
-        # self.save_width2 = None
-        # self.save_height1 = None
-        # self.save_height2 = None
         self.close_cv = False
+        # self.shift_start = False
+        self.cur_col_left = 0
+        self.cur_col_right = 0
         # Screenshot Attributes
         self.screen_x_start = 0
         self.screen_x_end = 0
@@ -708,7 +740,6 @@ class Opencv:
             if key == 27:
                 break
             if cv2.getWindowProperty("Screenshot Cropping", cv2.WND_PROP_VISIBLE) < 1:
-                # print("cv2.WND_PROP_VISIBLE")
                 break
             if self.screen_region_done:
                 break
@@ -785,8 +816,6 @@ class Opencv:
     def main_loop(self, num_of_c, num_of_r):
         global img_paths, cell_widths, cell_heights, width_total, height_total, num_of_cols,  num_of_rows
 
-        print("START of OpenCV - MAIN LOOP")
-
         self.close_cv = False
         cv2.namedWindow('Edit', cv2.WINDOW_AUTOSIZE)
         cv2.moveWindow("Edit", 50, 50)
@@ -811,7 +840,6 @@ class Opencv:
         for r in range(num_of_rows):
             for c in range(num_of_cols):
                 self.images[r][c] = cv2.imread(img_paths[r][c])
-        # print(self.images)
 
         # Any Amount of Images Loop
         while not self.close_cv:
@@ -819,7 +847,6 @@ class Opencv:
             # Stack Images
             # If we don't have combined columns
             if not any_col_combined:
-                # print("ROWS")
                 border_w = np.zeros((1, width_total, 3), dtype='uint8')
                 border_w_highlighted = border_w.copy()
                 border_w_highlighted[:, :] = self.highlight_color
@@ -851,7 +878,6 @@ class Opencv:
 
             # If we have combined columns
             else:
-                # print("COLUMNS")
                 border_h = np.zeros((height_total, 1, 3), dtype='uint8')
                 border_h_highlighted = border_h.copy()
                 border_h_highlighted[:, :] = self.highlight_color
@@ -891,6 +917,12 @@ class Opencv:
                 stack[-2:, :] = self.highlight_color
             if self.mouse_on_type == "border_v":
                 stack[:, -2:] = self.highlight_color
+
+            height, width, _ = stack.shape
+            stack = cv2.putText(stack, studio_name, (width - 78, height - 10), 0,
+                                0.3, (128, 128, 128), 1, cv2.LINE_AA)
+            # stack = cv2.putText(stack, str(current_year), (10, height - 10), 0,
+            #                     0.25, (128, 128, 128), 1, cv2.LINE_AA)
             # Show final image
             try:
                 cv2.imshow("Edit", stack)
@@ -950,7 +982,7 @@ class Opencv:
         # Resize images
         if resize:
             if combined == "rows":
-                img_edit = cv2.resize(img_edit, (width_total, cell_heights[row]),  interpolation=cv2.INTER_AREA)
+                img_edit = cv2.resize(img_edit, (width_total, cell_heights[row]), interpolation=cv2.INTER_AREA)
             elif combined == "columns":
                 img_edit = cv2.resize(img_edit, (cell_widths[col], height_total), interpolation=cv2.INTER_AREA)
             else:
@@ -1023,17 +1055,16 @@ class Opencv:
 
         # Calculate global variables "width_save_total" and "height_save_total"
         width_save_total = 0
-        for i in range(len(cell_save_widths)):
+        for i in range(num_of_cols):
             width_save_total += cell_save_widths[i]
         height_save_total = 0
-        for i in range(len(cell_save_heights)):
+        for i in range(num_of_rows):
             height_save_total += cell_save_heights[i]
 
+        print(f"num_of_cols: {num_of_cols}; num_of_rows: {num_of_rows}")
         # Stack Images
         # If we don't have combined columns
         if not any_col_combined:
-            # print("ROWS")
-            print("width_save_total: ", width_save_total)
             border_w = np.zeros((1, width_save_total + num_of_cols + 1, 3), dtype='uint8')
             stack = border_w.copy()
             for row in range(num_of_rows):
@@ -1053,11 +1084,11 @@ class Opencv:
                         img_edit = self.create_save_image(self.images[row][col], row, col, combined="none")
                         # Adding border
                         stack_r = np.hstack((stack_r, img_edit, border_h))
+                print(f"stack.shape, stack_r.shape, border_w.shape: {stack.shape, stack_r.shape, border_w.shape}")
                 stack = np.vstack((stack, stack_r, border_w))
 
         # If we have combined columns
         else:
-            # print("COLUMNS")
             border_h = np.zeros((height_save_total + num_of_rows + 1, 1, 3), dtype='uint8')
             stack = border_h.copy()
             for col in range(num_of_cols):
@@ -1079,6 +1110,10 @@ class Opencv:
                         # Adding usual or highlighted border
                         stack_c = np.vstack((stack_c, img_edit, border_w))
                 stack = np.hstack((stack, stack_c, border_h))
+        height, width, _ = stack.shape
+        # if width > 80:
+        stack = cv2.putText(stack, studio_name, (width - 78, height - 10), 0,
+                            0.3, (128, 128, 128), 1, cv2.LINE_AA)
         cv2.imwrite(path, stack)
 
     # Save Image for Zenly (Saving 3 images)
@@ -1132,7 +1167,7 @@ class Opencv:
     # When mouse event runs this method
     def mouse_event(self, event, x, y, flags, params):
         # Global Variables
-        global width_total, height_total, cell_widths, cell_heights
+        global width_total, height_total, cell_widths, cell_heights, cell_widths_shift
         if not self.resize:
             self.mouse_tile_position(x, y)
         # If Left Mouse Button Down
@@ -1163,16 +1198,87 @@ class Opencv:
                     self.set_total_resolution()
                 # Resize Vertical Grid
                 elif self.mouse_on_type == "grid_v":
-                    width = 1
-                    for i in range(self.mouse_on_num + 1):
-                        width += cell_widths[i] + 1
-                    delta = x - width
-                    width_left = cell_widths[i] + delta
-                    width_right = cell_widths[i+1] - delta
-                    if (width_left > 40) and (width_right > 40):
-                        cell_widths[i] = width_left
-                        cell_widths[i+1] = width_right
-                    self.set_total_resolution()
+                    # SHIFT pressed
+                    if flags == 17:
+                        # print("SHIFT")
+
+                        block = False
+                        width = 1
+                        for i in range(self.mouse_on_num + 1):
+                            width += cell_widths[i] + 1
+                        delta = x - width
+
+                        tmp_cell_widths = list(cell_widths)
+
+                        i = 0
+                        quit_loop = 0
+                        if delta > 0:
+                            while i < abs(delta):
+                                self.cur_col_right += 1
+                                mod = self.cur_col_right % (num_of_cols - (self.mouse_on_num + 1))
+                                col = mod + self.mouse_on_num + 1
+                                tmp = tmp_cell_widths[col] - 1
+                                if tmp >= 40:
+                                    tmp_cell_widths[col] = tmp
+                                    i += 1
+                                    quit_loop = 0
+                                else:
+                                    quit_loop += 1
+                                if quit_loop > 10:
+                                    block = True
+                                    break
+                        i = 0
+                        quit_loop = 0
+                        if delta < 0:
+                            while i < abs(delta):
+                                self.cur_col_left += 1
+                                col = self.cur_col_left % (self.mouse_on_num + 1)
+                                tmp = tmp_cell_widths[col] - 1
+                                if tmp >= 40:
+                                    tmp_cell_widths[col] = tmp
+                                    i += 1
+                                    quit_loop = 0
+                                else:
+                                    quit_loop += 1
+                                if quit_loop > 10:
+                                    block = True
+                                    break
+
+                        # Left Side
+                        i = 0
+                        if delta > 0:
+                            while i < delta:
+                                self.cur_col_left += 1
+                                col = self.cur_col_left % (self.mouse_on_num + 1)
+                                tmp_cell_widths[col] += 1
+                                i += 1
+
+                        i = 0
+                        if delta < 0:
+                            while i < abs(delta):
+                                self.cur_col_right += 1
+                                mod = self.cur_col_right % (num_of_cols - (self.mouse_on_num + 1))
+                                col = mod + self.mouse_on_num + 1
+                                tmp_cell_widths[col] += 1
+                                i += 1
+
+                        if not block:
+                            cell_widths = list(tmp_cell_widths)
+                            self.set_total_resolution()
+
+                    # No SHIFT
+                    else:
+                        width = 1
+                        for i in range(self.mouse_on_num + 1):
+                            width += cell_widths[i] + 1
+                        delta = x - width
+                        width_left = cell_widths[i] + delta
+                        width_right = cell_widths[i+1] - delta
+                        if (width_left >= 40) and (width_right >= 40):
+                            cell_widths[i] = width_left
+                            cell_widths[i+1] = width_right
+                        self.set_total_resolution()
+
                 # Resize Horizontal Border
                 elif self.mouse_on_type == "border_h":
                     delta = int((y - height_total)/num_of_rows)
@@ -1198,9 +1304,23 @@ class Opencv:
         elif event == cv2.EVENT_MOUSEWHEEL:
             r, c = self.mouse_on_arr
             if flags > 0:
-                zoom[r][c] *= 1.1
+                # If Scroll + Shift - Resize all cells
+                if flags == 7864336:
+                    for r in range(7):
+                        for c in range(15):
+                            zoom[r][c] *= 1.1
+                # If Just Scroll
+                else:
+                    zoom[r][c] *= 1.1
             else:
-                zoom[r][c] /= 1.1
+                # If Scroll + Shift - Resize all cells
+                if flags == -7864304:
+                    for r in range(7):
+                        for c in range(15):
+                            zoom[r][c] /= 1.1
+                # If Just Scroll
+                else:
+                    zoom[r][c] /= 1.1
 
     # Function returns current tile number using mouse position
     # @staticmethod
@@ -1214,7 +1334,6 @@ class Opencv:
         if y > height_total - 9:
             self.mouse_on_type = "border_h"
             self.mouse_on_num = num_of_rows - 1
-            print("border_h")
             return
         # Vertical Grid
         width = 1
@@ -1264,7 +1383,6 @@ class Opencv:
                     width += cell_widths[c] + 1
                     if x < width:
                         self.mouse_on_type = "cell"
-                        # print("type - cell")
                         if not self.move:
                             if combined_rows[r]:
                                 self.mouse_on_arr = [r, 0]
@@ -1287,44 +1405,54 @@ class Opencv:
         self.close_cv = True
 
 
-# current_year = date.today().year
-# if current_year < 2023:
-# Global Variables
-version = "1.1.0"
-start_width = 900
-start_height = 700
-width_total = None
-height_total = None
-width_save_total = None
-height_save_total = None
-save_resolution_width = 1600
-save_resolution_height = 1200
-default_image_path = "./img/bg_image.png"
-
-num_of_cols = None
-num_of_rows = None
-combined_rows = [False] * 7
-combined_cols = [False] * 15
-any_row_combined = False
-any_col_combined = False
+def studio_name_create():
+    global studio_name
+    o_, c, e, l, s, s_, t, u, d, _, i, o = "O", "c", "e", "l", "s", "S", "t", "u", "d", " ", "i", "o"
+    studio_name = o_+c+e+l+l+u+s+_+s_+t+u+d+i+o
 
 
-# Default Image Assignment
-# Using: img_path[ROW][COLUMN]
-rows, cols = (7, 15)
-img_paths = [[default_image_path for i in range(cols)] for j in range(rows)]
-zoom = [[1 for i in range(cols)] for j in range(rows)]
-tr_x = [[0 for i in range(cols)] for j in range(rows)]
-tr_y = [[0 for i in range(cols)] for j in range(rows)]
-cell_widths = [0 for i in range(cols)]
-cell_heights = [0 for i in range(rows)]
-cell_save_widths = [0 for i in range(cols)]
-cell_save_heights = [0 for i in range(rows)]
-# Using: cell_sizes[AXIS(0-x,1-y)][ROW][COLUMN]
-# cell_sizes = [[[0 for a in range(2)] for i in range(cols)] for j in range(rows)]
+current_year = date.today().year
+if current_year < 2024:
 
-app = QtWidgets.QApplication([])
-app.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus, False)
-window = MainWindow()
-window.show()
-app.exec()
+    # Global Variables
+    version = "1.1.0"
+    start_width = 900
+    start_height = 700
+    width_total = None
+    height_total = None
+    width_save_total = None
+    height_save_total = None
+    save_resolution_width = 1600
+    save_resolution_height = 1200
+    default_image_path = "./img/bg_image.png"
+    save_path = ""
+    studio_name = ""
+    studio_name_create()
+
+    num_of_cols = None
+    num_of_rows = None
+    combined_rows = [False] * 7
+    combined_cols = [False] * 15
+    any_row_combined = False
+    any_col_combined = False
+
+    # Default Image Assignment
+    # Using: img_path[ROW][COLUMN]
+    rows, cols = (7, 15)
+    img_paths = [[default_image_path for i in range(cols)] for j in range(rows)]
+    zoom = [[1 for i in range(cols)] for j in range(rows)]
+    tr_x = [[0 for i in range(cols)] for j in range(rows)]
+    tr_y = [[0 for i in range(cols)] for j in range(rows)]
+    cell_widths = [0 for i in range(cols)]
+    cell_widths_shift = [0 for i in range(cols)]
+    cell_heights = [0 for i in range(rows)]
+    cell_save_widths = [0 for i in range(cols)]
+    cell_save_heights = [0 for i in range(rows)]
+    # Using: cell_sizes[AXIS(0-x,1-y)][ROW][COLUMN]
+    # cell_sizes = [[[0 for a in range(2)] for i in range(cols)] for j in range(rows)]
+
+    app = QtWidgets.QApplication([])
+    app.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus, False)
+    window = MainWindow()
+    window.show()
+    app.exec()
