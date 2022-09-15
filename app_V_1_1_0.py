@@ -34,7 +34,7 @@ class ImageLabel(QtWidgets.QLabel):
 
     # Right Mouse Button Pressed on Image (QLabel)
     def contextMenuEvent(self, event):
-        global img_paths, default_image_path
+        global img_paths, default_image_path, zoom, tr_x, tr_y, update_ocv_images
 
         row = int(self.objectName()[-5:-3])
         col = int(self.objectName()[-2:])
@@ -82,9 +82,19 @@ class ImageLabel(QtWidgets.QLabel):
         # Swap Images Left
         if action == swap_left:
             tmp_img = img_paths[row][col]
+            tmp_zoom = zoom[row][col]
+            tmp_tr_x = tr_x[row][col]
+            tmp_tr_y = tr_y[row][col]
             img_paths[row][col] = img_paths[row][col-1]
-            img_paths[row][col - 1] = tmp_img
+            zoom[row][col] = zoom[row][col-1]
+            tr_x[row][col] = tr_x[row][col-1]
+            tr_y[row][col] = tr_y[row][col-1]
+            img_paths[row][col-1] = tmp_img
+            zoom[row][col-1] = tmp_zoom
+            tr_x[row][col-1] = tmp_tr_x
+            tr_y[row][col-1] = tmp_tr_y
             window.construct_grid()
+            update_ocv_images = True
 
         # Swap Images Right
         if action == swap_right:
@@ -634,7 +644,7 @@ class MainWindow(QtWidgets.QWidget):
         # cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
         # cur_path = "d:/"
         path = save_path + f'//ImageGrid_{str(int(time.time()))[2:]}.jpg'
-        print(path)
+        # print(path)
         save_file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", path,
                                                                   "Image (*.jpg);;Image (*.png)")
         if save_file_name:
@@ -687,10 +697,12 @@ class Opencv:
         self.mouse_on_type = None
         self.mouse_on_num = None
         self.mouse_on_arr = [None, None]
+        self.border_time = None
         self.highlight_color = (220, 220, 0)
+        # self.highlight_color_anim = None
         self.images = []
         self.close_cv = False
-        # self.shift_start = False
+        self.shift_pressed = False
         self.cur_col_left = 0
         self.cur_col_right = 0
         # Screenshot Attributes
@@ -731,8 +743,10 @@ class Opencv:
                 x1 = min(self.screen_x_start, self.screen_x_end)
                 x2 = max(self.screen_x_start, self.screen_x_end)
                 screen_final[y1:y2, x1:x2, :] = screen[y1:y2, x1:x2, :]
-            cv2.putText(screen_final, "Select area of screen to capture", (35, 35), cv2.FONT_HERSHEY_PLAIN, 2, (200, 200, 0), 2)
-            cv2.putText(screen_final, "SHIFT when selecting - Move selection", (35, 65), cv2.FONT_HERSHEY_PLAIN, 2, (200, 200, 0), 2)
+            cv2.putText(screen_final, "Select area of screen to capture", (35, 35), cv2.FONT_HERSHEY_PLAIN, 1, (200, 200, 0), 1)
+            cv2.putText(screen_final, "SHIFT when selecting - Move selection", (35, 65), cv2.FONT_HERSHEY_PLAIN, 1, (200, 200, 0), 1)
+            cv2.putText(screen_final, "Esc - Exit", (35, 95), cv2.FONT_HERSHEY_PLAIN, 1,
+                        (200, 200, 0), 1)
             cv2.imshow("Screenshot Cropping", screen_final)
 
             # Exit Screenshot Crop Loop
@@ -771,6 +785,8 @@ class Opencv:
         if event == cv2.EVENT_LBUTTONDOWN:
             self.screen_x_start = x
             self.screen_y_start = y
+            self.screen_x_end = x - 1
+            self.screen_y_end = y - 1
             self.draw = True
         # If Left Mouse Button Up
         elif event == cv2.EVENT_LBUTTONUP:
@@ -814,9 +830,10 @@ class Opencv:
     # Main OpenCV loop start, creating window and showing edited image
     #
     def main_loop(self, num_of_c, num_of_r):
-        global img_paths, cell_widths, cell_heights, width_total, height_total, num_of_cols,  num_of_rows
+        global img_paths, cell_widths, cell_heights, width_total, height_total, num_of_cols,  num_of_rows, update_ocv_images
 
         self.close_cv = False
+        update_ocv_images = True
         cv2.namedWindow('Edit', cv2.WINDOW_AUTOSIZE)
         cv2.moveWindow("Edit", 50, 50)
         cv2.setMouseCallback('Edit', self.mouse_event)
@@ -835,14 +852,18 @@ class Opencv:
         # width_total and height_total
         self.set_total_resolution()
 
-        # Read Images
-        self.images = [[0 for i in range(num_of_cols)] for j in range(num_of_rows)]
-        for r in range(num_of_rows):
-            for c in range(num_of_cols):
-                self.images[r][c] = cv2.imread(img_paths[r][c])
+        # self.images = [[0 for i in range(num_of_cols)] for j in range(num_of_rows)]
+        # for r in range(num_of_rows):
+        #     for c in range(num_of_cols):
+        #         self.images[r][c] = cv2.imread(img_paths[r][c])
 
         # Any Amount of Images Loop
         while not self.close_cv:
+
+            # Read Images
+            if update_ocv_images:
+                self.read_images()
+                update_ocv_images = False
 
             # Stack Images
             # If we don't have combined columns
@@ -907,22 +928,47 @@ class Opencv:
                         stack = np.hstack((stack, stack_c, border_h_highlighted))
                     else:
                         stack = np.hstack((stack, stack_c, border_h))
+
             # Thin black border all over the image
             stack[-1:, :] = 0
             stack[:, -1:] = 0
             stack[:1, :] = 0
             stack[:, :1] = 0
+
+            if self.mouse_on_type == "grid_v" and num_of_cols > 2 and (not self.shift_pressed) and self.resize:
+                stack = cv2.putText(stack, "+ SHIFT - resize all columns", (20, 20), 0,
+                                0.4, (128, 128, 128), 1, cv2.LINE_AA)
+                # stack = cv2.putText(stack, "SHIFT when selecting - Move selection", (35, 65), cv2.FONT_HERSHEY_PLAIN, 1,
+                #             (200, 200, 0), 1)
+
             # Show Borders on image vertical(right side) and horizontal(bottom)
+            # Horizontal Border
             if self.mouse_on_type == "border_h":
-                stack[-2:, :] = self.highlight_color
+                delta = time.time() - self.border_time
+                if delta < 2:
+                    stack[-2:, :] = self.highlight_color
+                # If mouse don't move more than 2 secs highlighted border becomes darker and darker
+                else:
+                    delta = int(delta * 50) - 100
+                    color = (max(220 - delta, 0), max(220 - delta, 0), 0)
+                    stack[-2:, :] = color
+            # Vertical Border
             if self.mouse_on_type == "border_v":
-                stack[:, -2:] = self.highlight_color
+                delta = time.time() - self.border_time
+                if delta < 2:
+                    stack[:, -2:] = self.highlight_color
+                # If mouse don't move more than 2 secs highlighted border becomes darker and darker
+                else:
+                    delta = int(delta * 50) - 100
+                    color = (max(220 - delta, 0), max(220 - delta, 0), 0)
+                    stack[:, -2:] = color
 
             height, width, _ = stack.shape
-            stack = cv2.putText(stack, studio_name, (width - 78, height - 10), 0,
+            stack = cv2.putText(stack, studio_name, (width - 75, height - 8), 0,
                                 0.3, (128, 128, 128), 1, cv2.LINE_AA)
             # stack = cv2.putText(stack, str(current_year), (10, height - 10), 0,
             #                     0.25, (128, 128, 128), 1, cv2.LINE_AA)
+
             # Show final image
             try:
                 cv2.imshow("Edit", stack)
@@ -936,6 +982,13 @@ class Opencv:
             if cv2.getWindowProperty("Edit", cv2.WND_PROP_VISIBLE) < 1:
                 self.close_cv = True
         cv2.destroyAllWindows()
+
+    # Read Images
+    def read_images(self):
+        self.images = [[0 for i in range(num_of_cols)] for j in range(num_of_rows)]
+        for r in range(num_of_rows):
+            for c in range(num_of_cols):
+                self.images[r][c] = cv2.imread(img_paths[r][c])
 
     # Editing (move, scale) image
     def create_image(self, img, row, col, combined,  resize=True):
@@ -1061,7 +1114,7 @@ class Opencv:
         for i in range(num_of_rows):
             height_save_total += cell_save_heights[i]
 
-        print(f"num_of_cols: {num_of_cols}; num_of_rows: {num_of_rows}")
+        # print(f"num_of_cols: {num_of_cols}; num_of_rows: {num_of_rows}")
         # Stack Images
         # If we don't have combined columns
         if not any_col_combined:
@@ -1084,7 +1137,7 @@ class Opencv:
                         img_edit = self.create_save_image(self.images[row][col], row, col, combined="none")
                         # Adding border
                         stack_r = np.hstack((stack_r, img_edit, border_h))
-                print(f"stack.shape, stack_r.shape, border_w.shape: {stack.shape, stack_r.shape, border_w.shape}")
+                # print(f"stack.shape, stack_r.shape, border_w.shape: {stack.shape, stack_r.shape, border_w.shape}")
                 stack = np.vstack((stack, stack_r, border_w))
 
         # If we have combined columns
@@ -1167,7 +1220,7 @@ class Opencv:
     # When mouse event runs this method
     def mouse_event(self, event, x, y, flags, params):
         # Global Variables
-        global width_total, height_total, cell_widths, cell_heights, cell_widths_shift
+        global width_total, height_total, cell_widths, cell_heights
         if not self.resize:
             self.mouse_tile_position(x, y)
         # If Left Mouse Button Down
@@ -1190,6 +1243,7 @@ class Opencv:
             if self.resize:
                 # Resize Vertical Border
                 if self.mouse_on_type == "border_v":
+                    self.border_time = time.time()
                     delta = int((x - width_total)/num_of_cols)
                     for i, cel in enumerate(cell_widths):
                         width = cell_widths[i] + delta
@@ -1201,15 +1255,13 @@ class Opencv:
                     # SHIFT pressed
                     if flags == 17:
                         # print("SHIFT")
-
+                        self.shift_pressed = True
                         block = False
                         width = 1
                         for i in range(self.mouse_on_num + 1):
                             width += cell_widths[i] + 1
                         delta = x - width
-
                         tmp_cell_widths = list(cell_widths)
-
                         i = 0
                         quit_loop = 0
                         if delta > 0:
@@ -1243,8 +1295,6 @@ class Opencv:
                                 if quit_loop > 10:
                                     block = True
                                     break
-
-                        # Left Side
                         i = 0
                         if delta > 0:
                             while i < delta:
@@ -1252,7 +1302,6 @@ class Opencv:
                                 col = self.cur_col_left % (self.mouse_on_num + 1)
                                 tmp_cell_widths[col] += 1
                                 i += 1
-
                         i = 0
                         if delta < 0:
                             while i < abs(delta):
@@ -1261,13 +1310,13 @@ class Opencv:
                                 col = mod + self.mouse_on_num + 1
                                 tmp_cell_widths[col] += 1
                                 i += 1
-
                         if not block:
                             cell_widths = list(tmp_cell_widths)
                             self.set_total_resolution()
 
                     # No SHIFT
                     else:
+                        self.shift_pressed = False
                         width = 1
                         for i in range(self.mouse_on_num + 1):
                             width += cell_widths[i] + 1
@@ -1281,6 +1330,7 @@ class Opencv:
 
                 # Resize Horizontal Border
                 elif self.mouse_on_type == "border_h":
+                    self.border_time = time.time()
                     delta = int((y - height_total)/num_of_rows)
                     # cell_heights = [y+delta for y in cell_heights]
                     for i, cel in enumerate(cell_heights):
@@ -1327,11 +1377,13 @@ class Opencv:
     def mouse_tile_position(self, x, y):
         # Right Border
         if x > width_total - 9:
+            self.border_time = time.time()
             self.mouse_on_type = "border_v"
             self.mouse_on_num = num_of_cols - 1
             return
         # Bottom Border
         if y > height_total - 9:
+            self.border_time = time.time()
             self.mouse_on_type = "border_h"
             self.mouse_on_num = num_of_rows - 1
             return
@@ -1428,6 +1480,7 @@ if current_year < 2024:
     save_path = ""
     studio_name = ""
     studio_name_create()
+    update_ocv_images = None
 
     num_of_cols = None
     num_of_rows = None
@@ -1444,7 +1497,7 @@ if current_year < 2024:
     tr_x = [[0 for i in range(cols)] for j in range(rows)]
     tr_y = [[0 for i in range(cols)] for j in range(rows)]
     cell_widths = [0 for i in range(cols)]
-    cell_widths_shift = [0 for i in range(cols)]
+    # cell_widths_shift = [0 for i in range(cols)]
     cell_heights = [0 for i in range(rows)]
     cell_save_widths = [0 for i in range(cols)]
     cell_save_heights = [0 for i in range(rows)]
