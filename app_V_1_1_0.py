@@ -9,7 +9,9 @@ import os
 import ctypes
 from datetime import date
 import time
-import math
+
+from gui.widgets.small_button import SmallButton
+# import math
 
 
 # ##############################
@@ -34,7 +36,7 @@ class ImageLabel(QtWidgets.QLabel):
 
     # Right Mouse Button Pressed on Image (QLabel)
     def contextMenuEvent(self, event):
-        global img_paths, default_image_path, zoom, tr_x, tr_y, update_ocv_images
+        # global img_paths, default_image_path
 
         row = int(self.objectName()[-5:-3])
         col = int(self.objectName()[-2:])
@@ -81,41 +83,38 @@ class ImageLabel(QtWidgets.QLabel):
 
         # Swap Images Left
         if action == swap_left:
-            tmp_img = img_paths[row][col]
-            tmp_zoom = zoom[row][col]
-            tmp_tr_x = tr_x[row][col]
-            tmp_tr_y = tr_y[row][col]
-            img_paths[row][col] = img_paths[row][col-1]
-            zoom[row][col] = zoom[row][col-1]
-            tr_x[row][col] = tr_x[row][col-1]
-            tr_y[row][col] = tr_y[row][col-1]
-            img_paths[row][col-1] = tmp_img
-            zoom[row][col-1] = tmp_zoom
-            tr_x[row][col-1] = tmp_tr_x
-            tr_y[row][col-1] = tmp_tr_y
-            window.construct_grid()
-            update_ocv_images = True
+            self.swap_to(row, col, 0, -1)
 
         # Swap Images Right
         if action == swap_right:
-            tmp_img = img_paths[row][col]
-            img_paths[row][col] = img_paths[row][col+1]
-            img_paths[row][col+1] = tmp_img
-            window.construct_grid()
+            self.swap_to(row, col, 0, 1)
 
         # Swap Images Up
         if action == swap_up:
-            tmp_img = img_paths[row][col]
-            img_paths[row][col] = img_paths[row-1][col]
-            img_paths[row-1][col] = tmp_img
-            window.construct_grid()
+            self.swap_to(row, col, -1, 0)
 
         # Swap Images Down
         if action == swap_down:
-            tmp_img = img_paths[row][col]
-            img_paths[row][col] = img_paths[row+1][col]
-            img_paths[row+1][col] = tmp_img
-            window.construct_grid()
+            self.swap_to(row, col, 1, 0)
+
+    def swap_to(self, row, col, row_shift, col_shift):
+        global update_ocv_images
+        row_dest = row + row_shift
+        col_dest = col + col_shift
+        tmp_img = img_paths[row][col]
+        tmp_zoom = zoom[row][col]
+        tmp_tr_x = tr_x[row][col]
+        tmp_tr_y = tr_y[row][col]
+        img_paths[row][col] = img_paths[row_dest][col_dest]
+        zoom[row][col] = zoom[row_dest][col_dest]
+        tr_x[row][col] = tr_x[row_dest][col_dest]
+        tr_y[row][col] = tr_y[row_dest][col_dest]
+        img_paths[row_dest][col_dest] = tmp_img
+        zoom[row_dest][col_dest] = tmp_zoom
+        tr_x[row_dest][col_dest] = tmp_tr_x
+        tr_y[row_dest][col_dest] = tmp_tr_y
+        window.construct_grid()
+        update_ocv_images = True
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasImage:
@@ -130,12 +129,14 @@ class ImageLabel(QtWidgets.QLabel):
             event.ignore()
 
     def dropEvent(self, event):
+        global update_ocv_images
         if event.mimeData().hasImage:
             event.setDropAction(QtCore.Qt.CopyAction)
             file_path = event.mimeData().urls()[0].toLocalFile()
             self.set_image(file_path)
             self.assignImagePath(self.objectName(), file_path)
             event.accept()
+            update_ocv_images = True
         else:
             event.ignore()
 
@@ -252,8 +253,6 @@ class MainWindow(QtWidgets.QWidget):
         self.settings.setValue("self.pyqt_num_of_rows", self.pyqt_num_of_rows)
         self.settings.setValue("save_path", save_path)
 
-
-
     # Creation of Images Grid
     def construct_grid(self):
 
@@ -269,7 +268,8 @@ class MainWindow(QtWidgets.QWidget):
         # Top Buttons Layout
         for c in range(self.pyqt_num_of_cols):
             elem_layout = QtWidgets.QHBoxLayout()
-            button1 = QtWidgets.QPushButton()
+            # button1 = QtWidgets.QPushButton()
+            button1 = QPushButton()
             button1.setToolTip('Merge column')
             if combined_cols[c] == 1:
                 button1.setIcon(QtGui.QIcon("./img/SVG/demerge-column.svg"))
@@ -295,7 +295,7 @@ class MainWindow(QtWidgets.QWidget):
         # Left Buttons Layout
         for r in range(self.pyqt_num_of_rows):
             elem_layout = QtWidgets.QVBoxLayout()
-            button1 = QtWidgets.QPushButton()
+            button1 = QPushButton()
             button1.setToolTip('Merge row')
             if combined_rows[r] == 1:
                 button1.setIcon(QtGui.QIcon("./img/SVG/demerge-row.svg"))
@@ -492,18 +492,21 @@ class MainWindow(QtWidgets.QWidget):
     def insert_column(self, col):
         global combined_cols
         global img_paths,  default_image_path
-        # if self.pyqt_num_of_cols > 1:
-        #     self.pyqt_num_of_cols -= 1
+        global update_ocv_images
+        # # if self.pyqt_num_of_cols > 1:
+        # #     self.pyqt_num_of_cols -= 1
         combined_cols.insert(col, False)
         combined_cols.pop()
         for i in img_paths:
             i.insert(col, default_image_path)
             i.pop()
         self.construct_grid()
+        update_ocv_images = True
 
     def insert_row(self, row):
         global combined_rows
         global img_paths, default_image_path
+        global update_ocv_images
         # if self.pyqt_num_of_rows > 1:
         #     self.pyqt_num_of_rows -= 1
         combined_rows.insert(row, False)
@@ -511,10 +514,26 @@ class MainWindow(QtWidgets.QWidget):
         self.construct_grid()
         img_paths.insert(row, [default_image_path] * 15)
         img_paths.pop()
+        update_ocv_images = True
+
+    def add_row(self):
+        global update_ocv_images
+        if self.pyqt_num_of_rows < 7:
+            self.pyqt_num_of_rows += 1
+            self.construct_grid()
+            # update_ocv_images = True
+
+    def hide_row(self):
+        global update_ocv_images
+        if self.pyqt_num_of_rows > 1:
+            self.pyqt_num_of_rows -= 1
+            self.construct_grid()
+            # update_ocv_images = True
 
     def remove_column(self, number):
         global combined_cols
         global img_paths,  default_image_path
+        global update_ocv_images
         # if self.pyqt_num_of_cols > 1:
         #     self.pyqt_num_of_cols -= 1
         combined_cols.pop(number)
@@ -523,20 +542,12 @@ class MainWindow(QtWidgets.QWidget):
             i.pop(number)
             i.append(default_image_path)
         self.construct_grid()
-
-    def add_row(self):
-        if self.pyqt_num_of_rows < 7:
-            self.pyqt_num_of_rows += 1
-            self.construct_grid()
-
-    def hide_row(self):
-        if self.pyqt_num_of_rows > 1:
-            self.pyqt_num_of_rows -= 1
-            self.construct_grid()
+        update_ocv_images = True
 
     def remove_row(self, number):
         global combined_rows
         global img_paths, default_image_path
+        global update_ocv_images
         # if self.pyqt_num_of_rows > 1:
         #     self.pyqt_num_of_rows -= 1
         combined_rows.pop(number)
@@ -544,6 +555,7 @@ class MainWindow(QtWidgets.QWidget):
         self.construct_grid()
         img_paths.pop(number)
         img_paths.append([default_image_path] * 15)
+        update_ocv_images = True
 
     def combine_column(self, number):
         global combined_rows, combined_cols, any_col_combined, any_row_combined
@@ -699,7 +711,6 @@ class Opencv:
         self.mouse_on_arr = [None, None]
         self.border_time = None
         self.highlight_color = (220, 220, 0)
-        # self.highlight_color_anim = None
         self.images = []
         self.close_cv = False
         self.shift_pressed = False
@@ -1466,20 +1477,23 @@ def studio_name_create():
 current_year = date.today().year
 if current_year < 2024:
 
-    # Global Variables
-    version = "1.1.0"
+    # Settings
     start_width = 900
     start_height = 700
+    save_resolution_width = 1600
+    save_resolution_height = 1200
+    ui_black = True
+    studio_name = ""
+    studio_name_create()
+
+    # Global Variables
+    version = "1.1.0"
     width_total = None
     height_total = None
     width_save_total = None
     height_save_total = None
-    save_resolution_width = 1600
-    save_resolution_height = 1200
     default_image_path = "./img/bg_image.png"
     save_path = ""
-    studio_name = ""
-    studio_name_create()
     update_ocv_images = None
 
     num_of_cols = None
@@ -1505,6 +1519,7 @@ if current_year < 2024:
     # cell_sizes = [[[0 for a in range(2)] for i in range(cols)] for j in range(rows)]
 
     app = QtWidgets.QApplication([])
+    # app.setStyleSheet("QWidget { background-color: #2d313c }")
     app.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus, False)
     window = MainWindow()
     window.show()
