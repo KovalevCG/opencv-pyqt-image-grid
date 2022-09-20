@@ -3,3 +3,5 @@ dist
 gitignore-tests
 gitignore-pyinstaller
 output
+OLD
+ui_sources
