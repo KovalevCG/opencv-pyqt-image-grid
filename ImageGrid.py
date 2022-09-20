@@ -9,6 +9,8 @@ import os
 import ctypes
 from datetime import date
 import time
+import tempfile
+from pathlib import Path
 
 
 # ##############################
@@ -43,7 +45,7 @@ class ImageLabel(QtWidgets.QLabel):
         context_menu = QMenu(self)
 
         # Menu Items
-        insert_row = context_menu.addAction(QIcon("./img/SVG/insert-row.svg"), "Insert Row of Images (↑)")
+        insert_row = context_menu.addAction(QIcon(self.resource_path("./img/SVG/insert-row.svg")), "Insert Row of Images (↑)")
         insert_column = context_menu.addAction(QIcon("./img/SVG/insert-column.svg"), "Insert Column of Images (←)")
         del_row = context_menu.addAction(QIcon("./img/SVG/del-row.svg"), "Delete Row of Images")
         del_column = context_menu.addAction(QIcon("./img/SVG/del-column.svg"), "Delete Column of Images")
@@ -147,7 +149,7 @@ class ImageLabel(QtWidgets.QLabel):
 
     # Put Placeholder on QLabel
     def set_placeholder(self):
-        icon = QtGui.QPixmap("./img/bg_image_qt_3.png")
+        icon = QtGui.QPixmap(self.resource_path("./img/bg_image_qt_3.png"))
         self.setPixmap(icon.scaled(self.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
         self.setAlignment(QtCore.Qt.AlignCenter)
 
@@ -157,6 +159,17 @@ class ImageLabel(QtWidgets.QLabel):
         col = obj_name[15:17]
         row = obj_name[12:14]
         img_paths[int(row)][int(col)] = path
+
+    # Create Absolute Path for PyInstaller
+    def resource_path(self, relative_path):
+        # """ Get absolute path to resource, works for dev and for PyInstaller """
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)
 
 
 # ##############################
@@ -436,15 +449,15 @@ class MainWindow(QtWidgets.QWidget):
         # Screenshor Buttons
         screen_btn1 = QtWidgets.QPushButton("  Screenshot")
         screen_btn1.setToolTip("Screenshot of the first monitor")
-        screen_btn1.setIcon(QtGui.QIcon('img\monitor_1.png'))
+        screen_btn1.setIcon(QtGui.QIcon('img/monitor_1.png'))
         screen_btn2 = QtWidgets.QPushButton()
         screen_btn2.setMaximumWidth(28)
         screen_btn2.setToolTip("Screenshot of second monitor")
-        screen_btn2.setIcon(QtGui.QIcon('img\monitor_2.png'))
+        screen_btn2.setIcon(QtGui.QIcon('img/monitor_2.png'))
         screen_btn3 = QtWidgets.QPushButton()
         screen_btn3.setMaximumWidth(28)
         screen_btn3.setToolTip("Screenshot of third monitor")
-        screen_btn3.setIcon(QtGui.QIcon('img\monitor_3.png'))
+        screen_btn3.setIcon(QtGui.QIcon('img/monitor_3.png'))
         # Adding Buttons to Layout
         layout.addWidget(screen_btn1)
         if len(QApplication.screens()) > 1:
@@ -669,9 +682,10 @@ class MainWindow(QtWidgets.QWidget):
         # if os.path.basename(img_path_1) != "screenshot_1.png" and os.path.basename(img_path_1) != "bg_image.png":
         #     cur_path = os.path.dirname(img_path_1)
         # else:
-        cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+        # cur_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+        path = save_path + f'//ImageGrid_{str(int(time.time()))[2:]}.jpg'
         # cur_path = "d:/"
-        save_file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Three Images for Zenly Project", cur_path+"/Image.jpg",
+        save_file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Three Images for Zenly Project", path,
                                                                   "Image (*.jpg);;Image (*.png)")
         if save_file_name:
             self.opencv.save_image_zenly(save_file_name)
@@ -681,10 +695,10 @@ class MainWindow(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(200, lambda: self.make_screenshot(s, r, c))
 
     def make_screenshot(self, scrn, r, c):
-        global img_paths
+        global img_paths, update_ocv_images
         screen = QtWidgets.QApplication.screens()[scrn]
         screenshot = screen.grabWindow(0)
-        filename = f"img/screenshot_{r:02}_{c:02}.png"
+        filename = f"{temp_dir}/screenshot_{r:02}_{c:02}.png"
         screenshot.save(filename, 'png')
 
         if self.opencv.screenshot_region(r, c):
@@ -693,6 +707,7 @@ class MainWindow(QtWidgets.QWidget):
             self.photoViewer[r][c].setPixmap(icon.scaled(self.photoViewer[r][c].size(), QtCore.Qt.KeepAspectRatioByExpanding,
                                                       QtCore.Qt.SmoothTransformation))
             img_paths[r][c] = filename
+            update_ocv_images = True
 
         self.show()
 
@@ -733,6 +748,17 @@ class Opencv:
         self.move_end_y = None
         self.loop_type = None
 
+    # Create Absolute Path for PyInstaller
+    def resource_path(self, relative_path):
+        # """ Get absolute path to resource, works for dev and for PyInstaller """
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)
+
     def screenshot_region(self, r, c):
         # Window
         cv2.namedWindow("Screenshot Cropping", cv2.WND_PROP_FULLSCREEN)
@@ -743,7 +769,7 @@ class Opencv:
 
         # Images
         # screen = cv2.imread("img/screenshot_" + str(int(i)) + ".png")
-        screen = cv2.imread(f"img/screenshot_{r:02}_{c:02}.png")
+        screen = cv2.imread(f"{temp_dir}/screenshot_{r:02}_{c:02}.png")
         zeros = np.zeros(screen.shape, screen.dtype)
         alpha = 0.5
         beta = (1.0 - alpha)
@@ -783,7 +809,9 @@ class Opencv:
             y2 = max(self.screen_y_start, self.screen_y_end)
             x1 = min(self.screen_x_start, self.screen_x_end)
             x2 = max(self.screen_x_start, self.screen_x_end)
-            cv2.imwrite(f"img/screenshot_{r:02}_{c:02}.png", screen[y1:y2, x1:x2])
+            path = f"{temp_dir}/screenshot_{r:02}_{c:02}.png"
+            # print(path)
+            cv2.imwrite(path, screen[y1:y2, x1:x2])
         # Screenshot Attributes
         self.screen_x_start = 0
         self.screen_x_end = 0
@@ -1032,7 +1060,7 @@ class Opencv:
         self.images = [[0 for i in range(num_of_cols)] for j in range(num_of_rows)]
         for r in range(num_of_rows):
             for c in range(num_of_cols):
-                self.images[r][c] = cv2.imread(img_paths[r][c])
+                self.images[r][c] = cv2.imread(self.resource_path(img_paths[r][c]))
 
     # Editing (move, scale) image
     def create_image(self, img, row, col, combined,  resize=True):
@@ -1256,6 +1284,17 @@ class Opencv:
         stack = np.vstack((stack1, border_w, stack2))
         cv2.rectangle(stack, (save_width1 - 1, save_height1 - 1),
                       (save_width1 + 1, save_height1 + 1), (100, 100, 100), -1)
+
+        # Put Studio Name
+        height, width, _ = stack1.shape
+        stack1 = cv2.putText(stack1, studio_name, (width - 78, height - 10), 0,
+                            0.3, (128, 128, 128), 1, cv2.LINE_AA)
+        height, width, _ = stack2.shape
+        stack2 = cv2.putText(stack2, studio_name, (width - 78, height - 10), 0,
+                            0.3, (128, 128, 128), 1, cv2.LINE_AA)
+        height, width, _ = stack.shape
+        stack = cv2.putText(stack, studio_name, (width - 78, height - 10), 0,
+                            0.3, (128, 128, 128), 1, cv2.LINE_AA)
 
         cv2.imwrite(path[:-4] + "_SC_Engine_00" + path[-4:], stack1)
         cv2.imwrite(path[:-4] + "_SC_DDC_00" + path[-4:], stack2)
@@ -1527,13 +1566,17 @@ if current_year < 2024:
     studio_name_create()
 
     # Global Variables
-    version = "1.1.0"
+    version = "1.1.0 Beta"
     width_total = None
     height_total = None
     width_save_total = None
     height_save_total = None
     default_image_path = "./img/bg_image.png"
     save_path = ""
+    temp_dir = tempfile.gettempdir()
+    temp_dir = temp_dir + "/ImageGrid"
+    Path(temp_dir).mkdir(parents=True, exist_ok=True)
+    # print(temp_dir)
     update_ocv_images = None
 
     num_of_cols = None
