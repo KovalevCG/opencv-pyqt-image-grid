@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['D:/repo/opencv-image-grid/app.py'],
+    ['D:/repo/opencv-image-grid/ImageGrid.py'],
     pathex=[],
     binaries=[],
     datas=[('D:/repo/opencv-image-grid/img', 'img/')],
@@ -26,7 +26,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='app',
+    name='ImageGrid',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -47,5 +47,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='app',
+    name='ImageGrid',
 )
