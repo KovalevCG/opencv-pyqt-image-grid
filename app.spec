@@ -5,10 +5,10 @@ block_cipher = None
 
 
 a = Analysis(
-    ['d:/repo/opencv-image-grid/app.py'],
+    ['D:/repo/opencv-image-grid/app.py'],
     pathex=[],
     binaries=[],
-    datas=[('d:/repo/opencv-image-grid/img', 'img/')],
+    datas=[('D:/repo/opencv-image-grid/img', 'img/')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -37,6 +37,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='D:\\logo.ico',
 )
 coll = COLLECT(
     exe,
