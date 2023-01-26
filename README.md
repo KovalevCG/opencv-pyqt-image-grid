@@ -4,7 +4,6 @@
 The pipeline of the organization I currently work for implies that before sending images to the Lead Artist, images need to be combined. I realized that it’s possible to make a program that will do this much more efficiently than Photoshop and developed that app. The program was very well received and gradually some of the artists started offerring additional functionality that I implemented. Now my application is part of pipeline of the studio I am working in.
 
 The application is written in Python using the PyQt and OpenCV libraries.
-
 <!--
 <br/><br/>
 
@@ -12,7 +11,6 @@ The application is written in Python using the PyQt and OpenCV libraries.
 
 <br/>
 -->
-
 <br/><br/>
 
 ![](https://raw.githubusercontent.com/KovalevCG/opencv-pyqt-image-grid/master/Gifs/v1_1/3images.gif)
@@ -43,3 +41,9 @@ and a faster way that allows not to create unnecessary files - creating new scre
 
 <br/>
 -->
+
+<br/><br/>
+
+![](https://raw.githubusercontent.com/KovalevCG/opencv-pyqt-image-grid/master/Gifs/v1_1/ImageGridV1_1.gif)
+
+<br/>
