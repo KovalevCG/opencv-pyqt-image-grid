@@ -13,6 +13,12 @@ The application is written in Python using the PyQt and OpenCV libraries.
 <br/>
 -->
 
+<br/><br/>
+
+![](https://raw.githubusercontent.com/KovalevCG/opencv-pyqt-image-grid/master/Gifs/v1_1/3images.gif)
+
+<br/>
+
 The application automatically calculates the optimal resolution based on the resolution of the incoming images.
 It also extends the image using the border color of the image if the incoming image is too small.
 The layout of two or four images is currently supported.
