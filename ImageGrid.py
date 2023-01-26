@@ -1554,7 +1554,7 @@ def studio_name_create():
 
 
 current_year = date.today().year
-if current_year < 2024:
+if current_year < 2044:
 
     # Settings
     start_width = 900
