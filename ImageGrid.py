@@ -190,7 +190,7 @@ class MainWindow(QtWidgets.QWidget):
         # Main Window
         # self.setFixedSize(430, 520)
         # self.setGeometry(1200, 200, 430, 520)
-        self.setWindowTitle("Image Grid v." + version + "   (lecense: Ocellus Studio)")
+        self.setWindowTitle("Image Grid v." + version)
         self.setWindowIcon(QtGui.QIcon("./img/SVG/logo.svg"))
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
@@ -1566,7 +1566,8 @@ if current_year < 2044:
     studio_name_create()
 
     # Global Variables
-    version = "1.1.0 Beta"
+    # version = "1.1.0 Beta"
+    version = "1.1.0"
     width_total = None
     height_total = None
     width_save_total = None
